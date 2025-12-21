@@ -240,7 +240,7 @@
                 <div class="technical-border rounded-xl bg-[#0E0E0E] relative overflow-hidden h-[280px] w-full flex flex-col items-center justify-center group mb-6">
                     <!-- Background Image -->
                     <div class="absolute inset-0 z-0">
-                        <img src="zdj.jpg" class="w-full h-full object-cover grayscale brightness-[0.4] group-hover:scale-105 transition-transform duration-700">
+                        <img src="https://images.unsplash.com/photo-1541447271487-09612b3f49f7?q=80&w=2574&auto=format&fit=crop" class="w-full h-full object-cover grayscale brightness-[0.4] group-hover:scale-105 transition-transform duration-700">
                         <div class="absolute inset-0 scanline opacity-30"></div>
                         <div class="absolute inset-0 bg-gradient-to-b from-[#0A0A0A]/60 via-transparent to-[#0A0A0A]/60"></div>
                     </div>
@@ -1220,17 +1220,23 @@
             });
         }
 
-        // Funkcja do obliczania punktów wyrównawczych
+        // --- POPRAWIONA FUNKCJA DO OBLICZANIA PUNKTÓW WYRÓWNAWCZYCH ---
         function calculateEqualizationPoints() {
+            console.log("=== OBLICZANIE PUNKTÓW WYRÓWNAWCZYCH ===");
+            
             // Resetuj punkty wyrównawcze
             state.drivers.forEach(driver => {
                 driver.equalizationPoints = 0;
             });
             
             const totalDrivers = state.drivers.length;
+            console.log("Liczba kierowców:", totalDrivers);
             
             // Sprawdzamy tylko jeśli mamy przynajmniej 3 rundy
-            if (state.rounds.length < 3) return;
+            if (state.rounds.length < 3) {
+                console.log("Za mało rund (potrzeba min. 3), pomijam punkty wyrównawcze");
+                return;
+            }
             
             // Obliczamy pozycje w pierwszych 2 rundach
             const firstTwoRoundsStandings = [];
@@ -1238,6 +1244,7 @@
             state.drivers.forEach(driver => {
                 // Suma punktów z pierwszych 2 rund
                 const firstTwoRoundsPoints = (driver.points[0] || 0) + (driver.points[1] || 0);
+                console.log(`Kierowca ${driver.name}: punkty z 2 pierwszych rund = ${firstTwoRoundsPoints}`);
                 firstTwoRoundsStandings.push({
                     driverId: driver.id,
                     points: firstTwoRoundsPoints
@@ -1251,15 +1258,18 @@
             const positions = {};
             firstTwoRoundsStandings.forEach((standing, index) => {
                 positions[standing.driverId] = index + 1; // pozycja 1-based
+                console.log(`Pozycja po 2 rundach: kierowca ${standing.driverId} = pozycja ${index + 1}`);
             });
             
             // Obliczamy pozycję w 3. rundzie
             const thirdRoundStandings = getRoundStandings(2);
+            console.log("Wyniki 3. rundy:", thirdRoundStandings);
             
             // Przypisujemy pozycje w 3. rundzie
             const thirdRoundPositions = {};
             thirdRoundStandings.forEach((standing, index) => {
                 thirdRoundPositions[standing.driverId] = index + 1; // pozycja 1-based
+                console.log(`Pozycja w 3. rundzie: kierowca ${standing.driverId} = pozycja ${index + 1}`);
             });
             
             // Sprawdzamy warunki dla każdego kierowcy
@@ -1267,20 +1277,35 @@
                 const positionInFirstTwo = positions[driver.id];
                 const positionInThird = thirdRoundPositions[driver.id];
                 
-                if (!positionInFirstTwo || !positionInThird) return;
+                console.log(`Sprawdzam kierowcę ${driver.name}:`);
+                console.log(`  - Pozycja po 2 rundach: ${positionInFirstTwo}`);
+                console.log(`  - Pozycja w 3. rundzie: ${positionInThird}`);
+                
+                if (!positionInFirstTwo || !positionInThird) {
+                    console.log(`  Brak danych, pomijam`);
+                    return;
+                }
                 
                 if (totalDrivers === 6) {
                     // Warunek dla 6 graczy
+                    console.log(`  Warunek dla 6 graczy: positionInFirstTwo > 5 (${positionInFirstTwo > 5}) && positionInThird <= 3 (${positionInThird <= 3})`);
                     if (positionInFirstTwo > 5 && positionInThird <= 3) {
                         driver.equalizationPoints = 4;
+                        console.log(`  ✓ Przyznano +4 punkty wyrównawcze dla ${driver.name}`);
                     }
                 } else if (totalDrivers === 8) {
                     // Warunek dla 8 graczy
+                    console.log(`  Warunek dla 8 graczy: positionInFirstTwo > 6 (${positionInFirstTwo > 6}) && positionInThird <= 4 (${positionInThird <= 4})`);
                     if (positionInFirstTwo > 6 && positionInThird <= 4) {
                         driver.equalizationPoints = 4;
+                        console.log(`  ✓ Przyznano +4 punkty wyrównawcze dla ${driver.name}`);
                     }
+                } else {
+                    console.log(`  Dla ${totalDrivers} graczy nie ma punktów wyrównawczych`);
                 }
             });
+            
+            console.log("=== KONIEC OBLICZANIA PUNKTÓW WYRÓWNAWCZYCH ===");
         }
 
         function calculateAllRoundPoints() {
@@ -1309,6 +1334,12 @@
                 const basePoints = d.points.reduce((a,b)=>a+b, 0);
                 const bonusPoints = state.results.filter(r => r.d === d.id).reduce((a, b) => a + (b.cp || 0), 0);
                 const equalizationPoints = d.equalizationPoints || 0;
+                
+                console.log(`Statystyki kierowcy ${d.name}:`);
+                console.log(`  - Punkty z rund: ${basePoints}`);
+                console.log(`  - Punkty bonusowe: ${bonusPoints}`);
+                console.log(`  - Punkty wyrównawcze: ${equalizationPoints}`);
+                console.log(`  - Razem: ${basePoints + bonusPoints + equalizationPoints}`);
                 
                 return {
                     ...d,
@@ -1672,7 +1703,11 @@
                 }
                 
                 if (text === 'WYRÓW.') {
-                    th.classList.add('text-purple-400');
+                    th.classList.add('text-purple-400', 'font-bold');
+                }
+                
+                if (text === 'BONUS') {
+                    th.classList.add('text-yellow-400');
                 }
                 
                 if (index >= 3 && index < headers.length - 3) {
@@ -1724,14 +1759,15 @@
                 
                 // Bonus points
                 td = document.createElement('td');
-                td.className = `py-4 px-4 text-right font-mono ${isLeader ? 'text-gray-800' : 'text-gray-400'}`;
+                td.className = `py-4 px-4 text-right font-mono ${isLeader ? 'text-gray-800' : 'text-yellow-400'}`;
                 td.textContent = `+${driver.bonus}`;
                 tr.appendChild(td);
                 
                 // Equalization points
                 td = document.createElement('td');
-                td.className = `py-4 px-4 text-right font-mono text-purple-400 ${isLeader ? 'font-bold' : ''}`;
-                td.textContent = driver.equalization > 0 ? `+${driver.equalization}` : '-';
+                const hasEqualization = driver.equalization > 0;
+                td.className = `py-4 px-4 text-right font-mono ${hasEqualization ? 'text-purple-400 font-bold' : (isLeader ? 'text-gray-800' : 'text-gray-500')}`;
+                td.textContent = hasEqualization ? `+${driver.equalization}` : '-';
                 tr.appendChild(td);
                 
                 // Total points
@@ -1782,7 +1818,7 @@
             });
         }
 
-        // --- NOWA POPRAWIONA FUNKCJA updateTeamAssignments ---
+        // --- POPRAWIONA FUNKCJA updateTeamAssignments ---
         function updateTeamAssignments() {
             console.log("Aktualizacja przypisań teamów...", state.drivers);
             
@@ -1891,7 +1927,7 @@
             });
         }
 
-        // --- NOWE FUNKCJE DO EDYCJI TEAMU I AUTA ---
+        // --- FUNKCJE DO EDYCJI TEAMU I AUTA ---
         function editDriverTeamAndCar(id) {
             const driver = state.drivers.find(d => d.id === id);
             if (!driver) return;
