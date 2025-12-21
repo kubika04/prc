@@ -619,7 +619,7 @@
                 </div>
 
                 <!-- Day 4 -->
-                <div class="technical-border rounded-xl bg-[#0E0E0E] p-6">
+                <div class="technical-border rounded-xl bg-[#0E0E0E] p-6 lg:col-span-3">
                     <div class="flex items-center gap-3 mb-4">
                         <div class="w-3 h-3 bg-[#8B0000] rounded-sm"></div>
                         <h3 class="font-mono text-xl font-bold">DZIEŃ 4</h3>
@@ -1190,6 +1190,20 @@
             return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(3, '0')}`;
         }
 
+        // --- NOWA FUNKCJA DO ZNALEZIENIA NAJGORSZEGO CZASU DLA ETAPU ---
+        function getWorstTimeForStage(roundIndex, stageIndex) {
+            let worstTime = 0;
+            const stageResults = state.results.filter(res => res.r === roundIndex && res.s === stageIndex);
+            
+            stageResults.forEach(result => {
+                if (result.time !== "DSQ" && result.time !== "DNF" && typeof result.ms === 'number') {
+                    worstTime = Math.max(worstTime, result.ms);
+                }
+            });
+            
+            return worstTime;
+        }
+
         function calculateTotalTimeForDriverInRound(driverId, roundIndex) {
             let totalMs = 0;
             const roundResults = state.results.filter(res => res.r === roundIndex && res.d === driverId);
@@ -1208,24 +1222,23 @@
                 return null;
             }
             
-            // Znajdź najgorszy czas wśród wszystkich kierowców w tej rundzie (dla obliczeń DNF)
-            let worstTimeInRound = 0;
-            const allRoundResults = state.results.filter(res => res.r === roundIndex);
-            allRoundResults.forEach(result => {
-                if (result.time !== "DSQ" && result.time !== "DNF" && typeof result.ms === 'number') {
-                    worstTimeInRound = Math.max(worstTimeInRound, result.ms);
-                }
-            });
+            // Dla każdego etapu w rundzie znajdź najgorszy czas i oblicz czas DNF
+            const stagesInRound = state.rounds[roundIndex]?.stages?.length || 0;
             
-            // Oblicz sumę czasów
-            validResults.forEach(result => {
-                if (result.time === "DNF") {
-                    // DNF = najgorszy czas + 20 sekund
-                    totalMs += worstTimeInRound + 20000;
-                } else if (typeof result.ms === 'number') {
-                    totalMs += result.ms;
+            for (let sIdx = 0; sIdx < stagesInRound; sIdx++) {
+                const stageResult = roundResults.find(res => res.s === sIdx);
+                
+                if (stageResult) {
+                    if (stageResult.time === "DNF") {
+                        // Znajdź najgorszy czas dla tego etapu
+                        const worstTimeInStage = getWorstTimeForStage(roundIndex, sIdx);
+                        // DNF = najgorszy czas + 20 sekund
+                        totalMs += worstTimeInStage + 20000;
+                    } else if (typeof stageResult.ms === 'number') {
+                        totalMs += stageResult.ms;
+                    }
                 }
-            });
+            }
             
             return totalMs;
         }
@@ -1682,6 +1695,7 @@
             renderStageResults();
         }
 
+        // --- POPRAWIONA FUNKCJA renderStageResults ---
         function renderStageResults() {
             const tbody = document.getElementById('stage-results-body');
             tbody.innerHTML = '';
@@ -1696,35 +1710,58 @@
                 return;
             }
 
+            // Znajdź najgorszy czas dla tego odcinka
+            const worstTimeInStage = getWorstTimeForStage(rIdx, sIdx);
+            
+            // Przygotuj tablicę wyników z obliczonymi czasami dla DNF
+            const resultsWithCalculatedTimes = filtered.map(res => {
+                let displayTime = res.time;
+                let calculatedMs = res.ms;
+                
+                if (res.time === "DNF") {
+                    // DNF = najgorszy czas + 20 sekund
+                    calculatedMs = worstTimeInStage + 20000;
+                    displayTime = "DNF";
+                } else if (res.time === "DSQ") {
+                    displayTime = "DSQ";
+                }
+                
+                return {
+                    ...res,
+                    displayTime: displayTime,
+                    calculatedMs: calculatedMs
+                };
+            });
+
             // Sortowanie: normalne czasy na początku, potem DNF, potem DSQ
-            filtered.sort((a,b) => {
-                if (a.time === "DSQ") return 1;
-                if (b.time === "DSQ") return -1;
-                if (a.time === "DNF") return 1;
-                if (b.time === "DNF") return -1;
-                return a.ms - b.ms;
+            resultsWithCalculatedTimes.sort((a,b) => {
+                if (a.displayTime === "DSQ") return 1;
+                if (b.displayTime === "DSQ") return -1;
+                if (a.displayTime === "DNF") return 1;
+                if (b.displayTime === "DNF") return -1;
+                return a.calculatedMs - b.calculatedMs;
             });
             
             // Znajdź zwycięzcę (pierwszy nie-DSQ/DNF)
-            const winner = filtered.find(res => res.time !== "DSQ" && res.time !== "DNF");
-            const winnerMs = winner ? winner.ms : 0;
+            const winner = resultsWithCalculatedTimes.find(res => res.displayTime !== "DSQ" && res.displayTime !== "DNF");
+            const winnerMs = winner ? winner.calculatedMs : 0;
 
-            filtered.forEach((res, i) => {
+            resultsWithCalculatedTimes.forEach((res, i) => {
                 const driver = state.drivers.find(d => d.id === res.d);
                 if(!driver) return;
                 
                 let diff = '-';
-                if (res.time === "DSQ") {
+                if (res.displayTime === "DSQ") {
                     diff = '<span class="status-dsq-text">DSQ</span>';
-                } else if (res.time === "DNF") {
+                } else if (res.displayTime === "DNF") {
                     diff = '<span class="status-dnf-text">DNF</span>';
-                } else if (i > 0 && res.time !== "DSQ" && res.time !== "DNF") {
-                    diff = formatTimeDiff(res.ms - winnerMs);
+                } else if (i > 0 && res.displayTime !== "DSQ" && res.displayTime !== "DNF") {
+                    diff = formatTimeDiff(res.calculatedMs - winnerMs);
                 }
                 
-                const isWinner = i === 0 && res.time !== "DSQ" && res.time !== "DNF";
-                const isDSQ = res.time === "DSQ";
-                const isDNF = res.time === "DNF";
+                const isWinner = i === 0 && res.displayTime !== "DSQ" && res.displayTime !== "DNF";
+                const isDSQ = res.displayTime === "DSQ";
+                const isDNF = res.displayTime === "DNF";
                 
                 const tr = document.createElement('tr');
                 if (isDSQ) {
@@ -1737,8 +1774,8 @@
                     tr.className = "hover:bg-[#151515] transition-colors border-l-2 border-transparent text-gray-300";
                 }
                 
-                const timeDisplay = formatTimeForDisplay(res.time === "DSQ" ? "DSQ" : (res.time === "DNF" ? "DNF" : res.ms));
-                const bonusPoints = (res.time === "DSQ" || res.time === "DNF") ? '0' : `+${res.cp}`;
+                const timeDisplay = formatTimeForDisplay(res.displayTime);
+                const bonusPoints = (res.displayTime === "DSQ" || res.displayTime === "DNF") ? '0' : `+${res.cp}`;
                 
                 tr.innerHTML = `
                     <td class="py-3 pl-4 text-sm ${isWinner ? 'text-black font-bold' : (isDSQ ? 'status-dsq-text' : (isDNF ? 'status-dnf-text' : 'text-gray-500'))}">${i+1}</td>
@@ -2608,5 +2645,3 @@
     </script>
 </body>
 </html>
-
-
