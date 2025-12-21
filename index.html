@@ -201,6 +201,29 @@
         .z-50 {
             z-index: 50;
         }
+
+        /* Special status styles */
+        .status-dsq {
+            background-color: rgba(220, 38, 38, 0.2) !important;
+            border-left: 4px solid #dc2626 !important;
+            color: #ef4444 !important;
+        }
+        
+        .status-dnf {
+            background-color: rgba(245, 158, 11, 0.2) !important;
+            border-left: 4px solid #f59e0b !important;
+            color: #f59e0b !important;
+        }
+        
+        .status-dsq-text {
+            color: #ef4444 !important;
+            font-weight: bold;
+        }
+        
+        .status-dnf-text {
+            color: #f59e0b !important;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col relative">
@@ -417,11 +440,11 @@
                     </div>
                     <div class="space-y-4">
                         <div class="p-3 bg-[#111] rounded-lg border-l-4 border-blue-600">
-                            <p class="font-mono text-sm text-white">Kierowca 1: <span class="text-[#8B0000]" id="ford-driver1">Rendi</span></p>
+                            <p class="font-mono text-sm text-white">Kierowca 1: <span class="text-[#8B0000]" id="ford-driver1">Do przydziału</span></p>
                             <p class="font-mono text-xs text-gray-400 mt-1">Ford Fiesta R5</p>
                         </div>
                         <div class="p-3 bg-[#111] rounded-lg border-l-4 border-blue-600">
-                            <p class="font-mono text-sm text-white">Kierowca 2: <span class="text-[#8B0000]" id="ford-driver2">Hanał</span></p>
+                            <p class="font-mono text-sm text-white">Kierowca 2: <span class="text-gray-400" id="ford-driver2">Do przydziału</span></p>
                             <p class="font-mono text-xs text-gray-400 mt-1">Ford Fiesta R5</p>
                         </div>
                     </div>
@@ -436,11 +459,11 @@
                     </div>
                     <div class="space-y-4">
                         <div class="p-3 bg-[#111] rounded-lg border-l-4 border-white">
-                            <p class="font-mono text-sm text-white">Kierowca 1: <span class="text-[#8B0000]" id="volkswagen-driver1">Dombart</span></p>
+                            <p class="font-mono text-sm text-white">Kierowca 1: <span class="text-gray-400" id="volkswagen-driver1">Do przydziału</span></p>
                             <p class="font-mono text-xs text-gray-400 mt-1">Volkswagen Polo GTI R5</p>
                         </div>
                         <div class="p-3 bg-[#111] rounded-lg border-l-4 border-white">
-                            <p class="font-mono text-sm text-white">Kierowca 2: <span class="text-[#8B0000]" id="volkswagen-driver2">Lamała</span></p>
+                            <p class="font-mono text-sm text-white">Kierowca 2: <span class="text-gray-400" id="volkswagen-driver2">Do przydziału</span></p>
                             <p class="font-mono text-xs text-gray-400 mt-1">Volkswagen Polo GTI R5</p>
                         </div>
                     </div>
@@ -455,7 +478,7 @@
                     </div>
                     <div class="space-y-4">
                         <div class="p-3 bg-[#111] rounded-lg border-l-4 border-green-600">
-                            <p class="font-mono text-sm text-white">Kierowca 1: <span class="text-[#8B0000]" id="skoda-driver1">White</span></p>
+                            <p class="font-mono text-sm text-white">Kierowca 1: <span class="text-gray-400" id="skoda-driver1">Do przydziału</span></p>
                             <p class="font-mono text-xs text-gray-400 mt-1">Škoda Fabia R5</p>
                         </div>
                         <div class="p-3 bg-[#111] rounded-lg border-l-4 border-green-600">
@@ -474,7 +497,7 @@
                     </div>
                     <div class="space-y-4">
                         <div class="p-3 bg-[#111] rounded-lg border-l-4 border-red-600">
-                            <p class="font-mono text-sm text-white">Kierowca 1: <span class="text-[#8B0000]" id="peugeot-driver1">Barto</span></p>
+                            <p class="font-mono text-sm text-white">Kierowca 1: <span class="text-gray-400" id="peugeot-driver1">Do przydziału</span></p>
                             <p class="font-mono text-xs text-gray-400 mt-1">Peugeot 208 T16 R5</p>
                         </div>
                         <div class="p-3 bg-[#111] rounded-lg border-l-4 border-red-600">
@@ -933,8 +956,8 @@
                                         </select>
                                     </div>
                                     <div class="md:col-span-3">
-                                        <label class="block text-sm font-mono text-gray-400 mb-2">CZAS (MM:SS.ms)</label>
-                                        <input id="admin-stage-time" type="text" placeholder="03:42.122" class="input-dark text-[#8B0000] font-bold tracking-wider">
+                                        <label class="block text-sm font-mono text-gray-400 mb-2">CZAS (MM:SS.ms lub DSQ/DNF)</label>
+                                        <input id="admin-stage-time" type="text" placeholder="03:42.122 lub DSQ/DNF" class="input-dark text-[#8B0000] font-bold tracking-wider">
                                     </div>
                                     
                                     <!-- Condition Radios -->
@@ -966,6 +989,13 @@
                                     <button onclick="submitAdminResult()" class="btn-accent flex-grow h-12 rounded-lg">ZAPISZ / AKTUALIZUJ WYNIK</button>
                                     <span id="admin-status-msg" class="text-sm font-mono text-green-500 hidden fade-in">ZAPISANO POPRAWNIE</span>
                                     <span id="admin-error-msg" class="text-sm font-mono text-red-500 hidden fade-in"></span>
+                                </div>
+                                <div class="mt-4 p-3 bg-[#111] border-l-4 border-yellow-600 rounded-md">
+                                    <p class="text-xs font-mono text-gray-300">
+                                        <strong>Uwaga:</strong> Możesz wpisać specjalne oznaczenia:<br>
+                                        • <span class="text-red-400">DSQ</span> - dyskwalifikacja z całego etapu (kraju)<br>
+                                        • <span class="text-yellow-400">DNF</span> - nie ukończył odcinka (+20 sekund do najgorszego czasu)
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -999,7 +1029,8 @@
                             <strong class="text-white">SYSTEM PUNKTACJI:</strong><br>
                             1. Miejsca w rajdzie: 15-12-10-8-6-4-2-1<br>
                             2. Punkty za stan pojazdu: Czysty (+2), Lekkie uszk. (+1)<br>
-                            3. Punkty wyrównawcze: +4 po 3 etapach w określonych warunkach
+                            3. Punkty wyrównawcze: +4 po 3 etapach w określonych warunkach<br>
+                            4. DSQ - dyskwalifikacja z całego kraju, DNF - +20s do najgorszego czasu
                         </div>
                         <div class="technical-border bg-[#0F0F0F] p-6 rounded-xl">
                             <div class="flex justify-between items-end mb-4">
@@ -1053,7 +1084,7 @@
             leaderRotationInterval: null
         };
 
-        // Stałe dane początkowe
+        // PUSTE dane początkowe
         const DEFAULT_DATA = {
             rounds: [
                 { id: 1, name: "Monte Carlo", stages: ["OS1: Col de Turini", "OS2: La Bollène", "OS3: Pra d'Alart"] },
@@ -1066,41 +1097,8 @@
                 { id: 8, name: "Polska", stages: ["OS1: Mikołajki", "OS2: Baranowo", "OS3: Wieliczki"] },
                 { id: 9, name: "USA (Power Stage)", stages: ["OS1: Power Stage"] }
             ],
-            drivers: [
-                { id: 1, name: "Rendi", team: "Ford", car: "Ford Fiesta R5", points: [0, 0, 0, 0, 0, 0, 0, 0, 0], equalizationPoints: 0 },
-                { id: 2, name: "Dombart", team: "Volkswagen", car: "Volkswagen Polo GTI R5", points: [0, 0, 0, 0, 0, 0, 0, 0, 0], equalizationPoints: 0 },
-                { id: 3, name: "White", team: "Škoda", car: "Škoda Fabia R5", points: [0, 0, 0, 0, 0, 0, 0, 0, 0], equalizationPoints: 0 },
-                { id: 4, name: "Barto", team: "Peugeot", car: "Peugeot 208 T16 R5", points: [0, 0, 0, 0, 0, 0, 0, 0, 0], equalizationPoints: 0 },
-                { id: 5, name: "Lamała", team: "Volkswagen", car: "Volkswagen Polo GTI R5", points: [0, 0, 0, 0, 0, 0, 0, 0, 0], equalizationPoints: 0 },
-                { id: 6, name: "Hanał", team: "Ford", car: "Ford Fiesta R5", points: [0, 0, 0, 0, 0, 0, 0, 0, 0], equalizationPoints: 0 },
-                { id: 7, name: "Gryzna", team: "Ford", car: "Ford Fiesta R5", points: [0, 0, 0, 0, 0, 0, 0, 0, 0], equalizationPoints: 0 },
-                { id: 8, name: "Sala", team: "Peugeot", car: "Peugeot 208 T16 R5", points: [0, 0, 0, 0, 0, 0, 0, 0, 0], equalizationPoints: 0 }
-            ],
-            results: [
-                // Przykładowe wyniki dla Monte Carlo - OS1
-                { r: 0, s: 0, d: 1, time: "03:42.122", ms: 222122, cp: 2 },
-                { r: 0, s: 0, d: 2, time: "03:44.523", ms: 224523, cp: 2 },
-                { r: 0, s: 0, d: 3, time: "03:47.234", ms: 227234, cp: 1 },
-                { r: 0, s: 0, d: 4, time: "03:48.001", ms: 228001, cp: 0 },
-                { r: 0, s: 0, d: 5, time: "03:45.123", ms: 225123, cp: 1 },
-                { r: 0, s: 0, d: 6, time: "03:46.789", ms: 226789, cp: 2 },
-                
-                // Monte Carlo - OS2
-                { r: 0, s: 1, d: 1, time: "04:12.345", ms: 252345, cp: 2 },
-                { r: 0, s: 1, d: 2, time: "04:14.678", ms: 254678, cp: 1 },
-                { r: 0, s: 1, d: 3, time: "04:16.901", ms: 256901, cp: 2 },
-                { r: 0, s: 1, d: 4, time: "04:18.234", ms: 258234, cp: 1 },
-                { r: 0, s: 1, d: 5, time: "04:15.555", ms: 255555, cp: 2 },
-                { r: 0, s: 1, d: 6, time: "04:17.777", ms: 257777, cp: 1 },
-                
-                // Monte Carlo - OS3
-                { r: 0, s: 2, d: 1, time: "05:02.111", ms: 302111, cp: 2 },
-                { r: 0, s: 2, d: 2, time: "05:04.222", ms: 304222, cp: 2 },
-                { r: 0, s: 2, d: 3, time: "05:06.333", ms: 306333, cp: 1 },
-                { r: 0, s: 2, d: 4, time: "05:08.444", ms: 308444, cp: 0 },
-                { r: 0, s: 2, d: 5, time: "05:05.555", ms: 305555, cp: 1 },
-                { r: 0, s: 2, d: 6, time: "05:07.777", ms: 307777, cp: 2 },
-            ]
+            drivers: [],
+            results: []
         };
 
         // --- LOCALSTORAGE FUNCTIONS ---
@@ -1109,7 +1107,7 @@
                 rounds: state.rounds,
                 drivers: state.drivers,
                 results: state.results,
-                version: "1.2"
+                version: "1.3"
             };
             localStorage.setItem('wrc_winter_cup_data', JSON.stringify(dataToSave));
         }
@@ -1148,16 +1146,20 @@
         }
 
         function resetToDefaults() {
-            if (confirm("Czy na pewno chcesz zresetować wszystkie dane do ustawień domyślnych? Ta operacja jest nieodwracalna.")) {
+            if (confirm("Czy na pewno chcesz zresetować wszystkie dane do ustawień domyślnych? Ta operacja jest nieodwracalna i usunie wszystkich kierowców i wyniki.")) {
                 loadDefaultData();
                 saveToLocalStorage();
                 refreshAllViews();
-                showAdminStatus("Dane zresetowane do domyślnych");
+                showAdminStatus("Dane zresetowane do pustych domyślnych");
             }
         }
 
         // --- HELPER FUNCTIONS ---
         function parseTime(timeStr) {
+            if (timeStr.toUpperCase() === "DSQ" || timeStr.toUpperCase() === "DNF") {
+                return timeStr.toUpperCase();
+            }
+            
             const parts = timeStr.split(':');
             if (parts.length < 2) throw new Error("Format");
             const min = parseInt(parts[0]);
@@ -1168,17 +1170,61 @@
         }
 
         function formatTimeDiff(msDiff) {
+            if (msDiff === "DSQ") return "DSQ";
+            if (msDiff === "DNF") return "DNF";
+            
             const sec = Math.floor(msDiff / 1000);
             const ms = msDiff % 1000;
             return `+${String(sec).padStart(2, '0')}.${String(ms).padStart(3, '0')}`;
+        }
+
+        function formatTimeForDisplay(ms) {
+            if (ms === "DSQ") return '<span class="status-dsq-text">DSQ</span>';
+            if (ms === "DNF") return '<span class="status-dnf-text">DNF</span>';
+            
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            const milliseconds = ms % 1000;
+            
+            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(3, '0')}`;
         }
 
         function calculateTotalTimeForDriverInRound(driverId, roundIndex) {
             let totalMs = 0;
             const roundResults = state.results.filter(res => res.r === roundIndex && res.d === driverId);
             
-            roundResults.forEach(result => {
-                totalMs += result.ms;
+            // Sprawdź czy kierowca ma DSQ w którymkolwiek OS-ie w tej rundzie
+            const hasDSQ = roundResults.some(result => result.time === "DSQ");
+            if (hasDSQ) {
+                return "DSQ";
+            }
+            
+            // Zbierz wszystkie czasy które nie są DSQ
+            const validResults = roundResults.filter(result => result.time !== "DSQ");
+            
+            // Jeśli nie ma żadnych wyników, zwróć null
+            if (validResults.length === 0) {
+                return null;
+            }
+            
+            // Znajdź najgorszy czas wśród wszystkich kierowców w tej rundzie (dla obliczeń DNF)
+            let worstTimeInRound = 0;
+            const allRoundResults = state.results.filter(res => res.r === roundIndex);
+            allRoundResults.forEach(result => {
+                if (result.time !== "DSQ" && result.time !== "DNF" && typeof result.ms === 'number') {
+                    worstTimeInRound = Math.max(worstTimeInRound, result.ms);
+                }
+            });
+            
+            // Oblicz sumę czasów
+            validResults.forEach(result => {
+                if (result.time === "DNF") {
+                    // DNF = najgorszy czas + 20 sekund
+                    totalMs += worstTimeInRound + 20000;
+                } else if (typeof result.ms === 'number') {
+                    totalMs += result.ms;
+                }
             });
             
             return totalMs;
@@ -1194,14 +1240,23 @@
             
             driversInRound.forEach(driverId => {
                 const totalTime = calculateTotalTimeForDriverInRound(driverId, roundIndex);
-                driverTimes.push({
-                    driverId: driverId,
-                    totalMs: totalTime
-                });
+                if (totalTime !== null) {
+                    driverTimes.push({
+                        driverId: driverId,
+                        totalMs: totalTime
+                    });
+                }
             });
             
             // Sortuj od najszybszego do najwolniejszego
-            driverTimes.sort((a, b) => a.totalMs - b.totalMs);
+            // DSQ zawsze na końcu
+            driverTimes.sort((a, b) => {
+                if (a.totalMs === "DSQ") return 1;
+                if (b.totalMs === "DSQ") return -1;
+                if (a.totalMs === "DNF") return 1;
+                if (b.totalMs === "DNF") return -1;
+                return a.totalMs - b.totalMs;
+            });
             
             return driverTimes;
         }
@@ -1210,31 +1265,38 @@
             const standings = getRoundStandings(roundIndex);
             const pointsSystem = [15, 12, 10, 8, 6, 4, 2, 1];
             
-            standings.forEach((standing, position) => {
+            // Resetuj punkty dla tej rundy
+            state.drivers.forEach(driver => {
+                driver.points[roundIndex] = 0;
+            });
+            
+            let position = 0;
+            standings.forEach((standing) => {
                 const driver = state.drivers.find(d => d.id === standing.driverId);
-                if (driver && position < pointsSystem.length) {
-                    driver.points[roundIndex] = pointsSystem[position];
-                } else if (driver && position >= pointsSystem.length) {
-                    driver.points[roundIndex] = 0;
+                if (driver) {
+                    if (standing.totalMs === "DSQ") {
+                        driver.points[roundIndex] = 0; // DSQ = 0 punktów
+                    } else if (position < pointsSystem.length) {
+                        driver.points[roundIndex] = pointsSystem[position];
+                        position++;
+                    } else {
+                        driver.points[roundIndex] = 0;
+                    }
                 }
             });
         }
 
-        // --- POPRAWIONA FUNKCJA DO OBLICZANIA PUNKTÓW WYRÓWNAWCZYCH ---
+        // --- FUNKCJA DO OBLICZANIA PUNKTÓW WYRÓWNAWCZYCH ---
         function calculateEqualizationPoints() {
-            console.log("=== OBLICZANIE PUNKTÓW WYRÓWNAWCZYCH ===");
-            
             // Resetuj punkty wyrównawcze
             state.drivers.forEach(driver => {
                 driver.equalizationPoints = 0;
             });
             
             const totalDrivers = state.drivers.length;
-            console.log("Liczba kierowców:", totalDrivers);
             
             // Sprawdzamy tylko jeśli mamy przynajmniej 3 rundy
             if (state.rounds.length < 3) {
-                console.log("Za mało rund (potrzeba min. 3), pomijam punkty wyrównawcze");
                 return;
             }
             
@@ -1244,7 +1306,6 @@
             state.drivers.forEach(driver => {
                 // Suma punktów z pierwszych 2 rund
                 const firstTwoRoundsPoints = (driver.points[0] || 0) + (driver.points[1] || 0);
-                console.log(`Kierowca ${driver.name}: punkty z 2 pierwszych rund = ${firstTwoRoundsPoints}`);
                 firstTwoRoundsStandings.push({
                     driverId: driver.id,
                     points: firstTwoRoundsPoints
@@ -1258,18 +1319,15 @@
             const positions = {};
             firstTwoRoundsStandings.forEach((standing, index) => {
                 positions[standing.driverId] = index + 1; // pozycja 1-based
-                console.log(`Pozycja po 2 rundach: kierowca ${standing.driverId} = pozycja ${index + 1}`);
             });
             
             // Obliczamy pozycję w 3. rundzie
             const thirdRoundStandings = getRoundStandings(2);
-            console.log("Wyniki 3. rundy:", thirdRoundStandings);
             
             // Przypisujemy pozycje w 3. rundzie
             const thirdRoundPositions = {};
             thirdRoundStandings.forEach((standing, index) => {
                 thirdRoundPositions[standing.driverId] = index + 1; // pozycja 1-based
-                console.log(`Pozycja w 3. rundzie: kierowca ${standing.driverId} = pozycja ${index + 1}`);
             });
             
             // Sprawdzamy warunki dla każdego kierowcy
@@ -1277,35 +1335,22 @@
                 const positionInFirstTwo = positions[driver.id];
                 const positionInThird = thirdRoundPositions[driver.id];
                 
-                console.log(`Sprawdzam kierowcę ${driver.name}:`);
-                console.log(`  - Pozycja po 2 rundach: ${positionInFirstTwo}`);
-                console.log(`  - Pozycja w 3. rundzie: ${positionInThird}`);
-                
                 if (!positionInFirstTwo || !positionInThird) {
-                    console.log(`  Brak danych, pomijam`);
                     return;
                 }
                 
                 if (totalDrivers === 6) {
                     // Warunek dla 6 graczy
-                    console.log(`  Warunek dla 6 graczy: positionInFirstTwo > 5 (${positionInFirstTwo > 5}) && positionInThird <= 3 (${positionInThird <= 3})`);
                     if (positionInFirstTwo > 5 && positionInThird <= 3) {
                         driver.equalizationPoints = 4;
-                        console.log(`  ✓ Przyznano +4 punkty wyrównawcze dla ${driver.name}`);
                     }
                 } else if (totalDrivers === 8) {
                     // Warunek dla 8 graczy
-                    console.log(`  Warunek dla 8 graczy: positionInFirstTwo > 6 (${positionInFirstTwo > 6}) && positionInThird <= 4 (${positionInThird <= 4})`);
                     if (positionInFirstTwo > 6 && positionInThird <= 4) {
                         driver.equalizationPoints = 4;
-                        console.log(`  ✓ Przyznano +4 punkty wyrównawcze dla ${driver.name}`);
                     }
-                } else {
-                    console.log(`  Dla ${totalDrivers} graczy nie ma punktów wyrównawczych`);
                 }
             });
-            
-            console.log("=== KONIEC OBLICZANIA PUNKTÓW WYRÓWNAWCZYCH ===");
         }
 
         function calculateAllRoundPoints() {
@@ -1332,14 +1377,14 @@
             
             return state.drivers.map(d => {
                 const basePoints = d.points.reduce((a,b)=>a+b, 0);
-                const bonusPoints = state.results.filter(r => r.d === d.id).reduce((a, b) => a + (b.cp || 0), 0);
+                const bonusPoints = state.results.filter(r => r.d === d.id).reduce((a, b) => {
+                    // DSQ i DNF nie dostają punktów bonusowych
+                    if (b.time === "DSQ" || b.time === "DNF") {
+                        return a;
+                    }
+                    return a + (b.cp || 0);
+                }, 0);
                 const equalizationPoints = d.equalizationPoints || 0;
-                
-                console.log(`Statystyki kierowcy ${d.name}:`);
-                console.log(`  - Punkty z rund: ${basePoints}`);
-                console.log(`  - Punkty bonusowe: ${bonusPoints}`);
-                console.log(`  - Punkty wyrównawcze: ${equalizationPoints}`);
-                console.log(`  - Razem: ${basePoints + bonusPoints + equalizationPoints}`);
                 
                 return {
                     ...d,
@@ -1572,16 +1617,17 @@
                 roundSelect.add(opt);
             });
             
-            if(!roundSelect.value && state.rounds.length > 2) roundSelect.value = 2;
-            else if (!roundSelect.value) roundSelect.value = 0;
+            if(!roundSelect.value && state.rounds.length > 0) roundSelect.value = 0;
             
             roundSelect.onchange = () => {
                 populateStages(roundSelect.value);
                 renderStageResults();
             };
 
-            populateStages(roundSelect.value);
-            renderStageResults();
+            if (state.rounds.length > 0) {
+                populateStages(roundSelect.value);
+                renderStageResults();
+            }
         }
 
         function populateStages(roundIndex) {
@@ -1650,26 +1696,56 @@
                 return;
             }
 
-            filtered.sort((a,b) => a.ms - b.ms);
+            // Sortowanie: normalne czasy na początku, potem DNF, potem DSQ
+            filtered.sort((a,b) => {
+                if (a.time === "DSQ") return 1;
+                if (b.time === "DSQ") return -1;
+                if (a.time === "DNF") return 1;
+                if (b.time === "DNF") return -1;
+                return a.ms - b.ms;
+            });
             
-            const winnerMs = filtered[0].ms;
+            // Znajdź zwycięzcę (pierwszy nie-DSQ/DNF)
+            const winner = filtered.find(res => res.time !== "DSQ" && res.time !== "DNF");
+            const winnerMs = winner ? winner.ms : 0;
 
             filtered.forEach((res, i) => {
                 const driver = state.drivers.find(d => d.id === res.d);
                 if(!driver) return;
                 
-                const diff = i === 0 ? '-' : formatTimeDiff(res.ms - winnerMs);
-                const isWinner = i === 0;
+                let diff = '-';
+                if (res.time === "DSQ") {
+                    diff = '<span class="status-dsq-text">DSQ</span>';
+                } else if (res.time === "DNF") {
+                    diff = '<span class="status-dnf-text">DNF</span>';
+                } else if (i > 0 && res.time !== "DSQ" && res.time !== "DNF") {
+                    diff = formatTimeDiff(res.ms - winnerMs);
+                }
+                
+                const isWinner = i === 0 && res.time !== "DSQ" && res.time !== "DNF";
+                const isDSQ = res.time === "DSQ";
+                const isDNF = res.time === "DNF";
                 
                 const tr = document.createElement('tr');
-                tr.className = isWinner ? "bg-zinc-200 text-black" : "hover:bg-[#151515] transition-colors border-l-2 border-transparent text-gray-300";
+                if (isDSQ) {
+                    tr.className = "status-dsq";
+                } else if (isDNF) {
+                    tr.className = "status-dnf";
+                } else if (isWinner) {
+                    tr.className = "bg-zinc-200 text-black";
+                } else {
+                    tr.className = "hover:bg-[#151515] transition-colors border-l-2 border-transparent text-gray-300";
+                }
+                
+                const timeDisplay = formatTimeForDisplay(res.time === "DSQ" ? "DSQ" : (res.time === "DNF" ? "DNF" : res.ms));
+                const bonusPoints = (res.time === "DSQ" || res.time === "DNF") ? '0' : `+${res.cp}`;
                 
                 tr.innerHTML = `
-                    <td class="py-3 pl-4 text-sm ${isWinner ? 'text-black font-bold' : 'text-gray-500'}">${i+1}</td>
-                    <td class="py-3 font-bold font-mono ${isWinner ? 'text-black' : 'text-gray-300'}">${driver.name}</td>
-                    <td class="py-3 text-right font-mono tracking-wide ${isWinner ? 'text-black font-bold' : 'text-white'}">${res.time}</td>
-                    <td class="py-3 text-right text-sm font-mono ${isWinner ? 'text-gray-800' : 'text-gray-500'}">${diff}</td>
-                    <td class="py-3 text-right pr-4 font-mono text-sm ${isWinner ? 'text-gray-800' : 'text-gray-400'}">+${res.cp}</td>
+                    <td class="py-3 pl-4 text-sm ${isWinner ? 'text-black font-bold' : (isDSQ ? 'status-dsq-text' : (isDNF ? 'status-dnf-text' : 'text-gray-500'))}">${i+1}</td>
+                    <td class="py-3 font-bold font-mono ${isWinner ? 'text-black' : (isDSQ ? 'status-dsq-text' : (isDNF ? 'status-dnf-text' : 'text-gray-300'))}">${driver.name}</td>
+                    <td class="py-3 text-right font-mono tracking-wide ${isWinner ? 'text-black font-bold' : (isDSQ ? 'status-dsq-text' : (isDNF ? 'status-dnf-text' : 'text-white'))}">${timeDisplay}</td>
+                    <td class="py-3 text-right text-sm font-mono ${isWinner ? 'text-gray-800' : (isDSQ ? 'status-dsq-text' : (isDNF ? 'status-dnf-text' : 'text-gray-500'))}">${diff}</td>
+                    <td class="py-3 text-right pr-4 font-mono text-sm ${isWinner ? 'text-gray-800' : (isDSQ ? 'status-dsq-text' : (isDNF ? 'status-dnf-text' : 'text-gray-400'))}">${bonusPoints}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -1778,6 +1854,13 @@
                 
                 tbody.appendChild(tr);
             });
+            
+            // Jeśli nie ma kierowców, pokaż komunikat
+            if (driverStats.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td colspan="${headers.length}" class="py-8 text-center text-gray-500 font-mono text-sm">BRAK DANYCH. DODAJ KIEROWCÓW W PANELU ADMINA.</td>`;
+                tbody.appendChild(tr);
+            }
         }
         
         function renderConstructorsTable() {
@@ -1816,12 +1899,17 @@
                 
                 tbody.appendChild(tr);
             });
+            
+            // Jeśli nie ma konstruktorów, pokaż komunikat
+            if (constructorStats.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td colspan="4" class="py-8 text-center text-gray-500 font-mono text-sm">BRAK DANYCH. DODAJ KIEROWCÓW W PANELU ADMINA.</td>`;
+                tbody.appendChild(tr);
+            }
         }
 
         // --- POPRAWIONA FUNKCJA updateTeamAssignments ---
         function updateTeamAssignments() {
-            console.log("Aktualizacja przypisań teamów...", state.drivers);
-            
             // Inicjalizuj obiekt zespołów
             const teams = {
                 'Ford': { driver1: '', driver2: '' },
@@ -1839,14 +1927,9 @@
                         teams[driver.team].driver1 = driver.name;
                     } else if (!teams[driver.team].driver2) {
                         teams[driver.team].driver2 = driver.name;
-                    } else {
-                        // Jeśli są już 2 kierowcy, do nothing
-                        console.log(`Zespół ${driver.team} ma już 2 kierowców: ${teams[driver.team].driver1}, ${teams[driver.team].driver2}`);
                     }
                 }
             });
-            
-            console.log("Przypisani kierowcy:", teams);
             
             // Zaktualizuj UI dla każdego zespołu
             for (const [team, drivers] of Object.entries(teams)) {
@@ -1909,6 +1992,12 @@
         function renderAdminDrivers() {
             const tbody = document.getElementById('admin-drivers-list');
             tbody.innerHTML = '';
+            
+            if (state.drivers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-500 font-mono text-sm">BRAK KIEROWCÓW. DODAJ PIERWSZEGO KIEROWCĘ.</td></tr>`;
+                return;
+            }
+            
             state.drivers.forEach(d => {
                 const tr = document.createElement('tr');
                 tr.className = "group hover:bg-[#151515] transition-colors";
@@ -2087,7 +2176,15 @@
 
             tbody.innerHTML = '';
             const filtered = state.results.filter(res => res.r === rIdx && res.s === sIdx);
-            filtered.sort((a,b) => a.ms - b.ms);
+            
+            // Sortowanie: normalne czasy, potem DNF, potem DSQ
+            filtered.sort((a,b) => {
+                if (a.time === "DSQ") return 1;
+                if (b.time === "DSQ") return -1;
+                if (a.time === "DNF") return 1;
+                if (b.time === "DNF") return -1;
+                return a.ms - b.ms;
+            });
 
             if(filtered.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-600 text-sm">BRAK WYNIKÓW DLA TEGO ODCINKA</td></tr>';
@@ -2098,11 +2195,22 @@
                 const driver = state.drivers.find(d => d.id === res.d);
                 if (!driver) return;
                 
+                const isDSQ = res.time === "DSQ";
+                const isDNF = res.time === "DNF";
+                const timeDisplay = formatTimeForDisplay(res.time === "DSQ" ? "DSQ" : (res.time === "DNF" ? "DNF" : res.ms));
+                const bonusPoints = (isDSQ || isDNF) ? '0' : `+${res.cp}`;
+                
                 const tr = document.createElement('tr');
+                if (isDSQ) {
+                    tr.className = "status-dsq";
+                } else if (isDNF) {
+                    tr.className = "status-dnf";
+                }
+                
                 tr.innerHTML = `
-                    <td class="p-3 text-gray-300 font-bold">${driver.name}</td>
-                    <td class="p-3 text-right font-mono text-gray-400">${res.time}</td>
-                    <td class="p-3 text-right font-mono text-sm text-gray-500">+${res.cp}</td>
+                    <td class="p-3 text-gray-300 font-bold ${isDSQ ? 'status-dsq-text' : (isDNF ? 'status-dnf-text' : '')}">${driver.name}</td>
+                    <td class="p-3 text-right font-mono ${isDSQ ? 'status-dsq-text' : (isDNF ? 'status-dnf-text' : 'text-gray-400')}">${timeDisplay}</td>
+                    <td class="p-3 text-right font-mono text-sm ${isDSQ ? 'status-dsq-text' : (isDNF ? 'status-dnf-text' : 'text-gray-500')}">${bonusPoints}</td>
                     <td class="p-3 text-right space-x-2">
                          <button onclick="editResult(${res.r}, ${res.s}, ${res.d})" class="text-[#8B0000] hover:text-white text-sm uppercase font-mono">Edytuj</button>
                          <button onclick="deleteResult(${res.r}, ${res.s}, ${res.d})" class="text-red-500 hover:text-red-300">×</button>
@@ -2160,7 +2268,7 @@
             const rIdx = parseInt(rSelect.value);
             const sIdx = parseInt(sSelect.value);
             const dId = parseInt(document.getElementById('stage-driver-select').value);
-            const timeStr = document.getElementById('admin-stage-time').value; 
+            const timeStr = document.getElementById('admin-stage-time').value.trim().toUpperCase(); 
             
             if (isNaN(rIdx) || isNaN(sIdx)) {
                 showAdminStatus("Wybierz rajd i odcinek", true);
@@ -2172,9 +2280,28 @@
                 return;
             }
             
-            if (!timeStr || !timeStr.includes(':') || !timeStr.includes('.')) {
-                showAdminStatus("Wprowadź poprawny czas (MM:SS.ms)", true);
+            if (!timeStr) {
+                showAdminStatus("Wprowadź czas lub DSQ/DNF", true);
                 return;
+            }
+            
+            // Sprawdź czy to DSQ lub DNF
+            let msValue;
+            if (timeStr === "DSQ" || timeStr === "DNF") {
+                msValue = timeStr;
+            } else {
+                // Sprawdź format czasu
+                if (!timeStr.includes(':') || !timeStr.includes('.')) {
+                    showAdminStatus("Wprowadź poprawny czas (MM:SS.ms) lub DSQ/DNF", true);
+                    return;
+                }
+                
+                try {
+                    msValue = parseTime(timeStr);
+                } catch(e) {
+                    showAdminStatus("Błąd formatu czasu. Użyj MM:SS.ms lub DSQ/DNF", true);
+                    return;
+                }
             }
             
             const radios = document.getElementsByName('run_condition');
@@ -2185,32 +2312,32 @@
                     break;
                 }
             }
-
-            try {
-                const ms = parseTime(timeStr);
-                
-                state.results = state.results.filter(res => !(res.r === rIdx && res.s === sIdx && res.d === dId));
-                
-                state.results.push({
-                    r: rIdx,
-                    s: sIdx,
-                    d: dId,
-                    time: timeStr,
-                    ms: ms,
-                    cp: conditionPoints
-                });
-                
-                document.getElementById('admin-stage-time').value = '';
-                document.getElementById('stage-driver-select').value = '';
-                
-                renderAdminResultsTable();
-                showAdminStatus("Zapisano poprawnie");
-                refreshAllViews();
-                saveToLocalStorage();
-                
-            } catch(e) {
-                showAdminStatus("Błąd formatu czasu. Użyj MM:SS.ms", true);
+            
+            // DSQ i DNF nie dostają punktów bonusowych
+            if (timeStr === "DSQ" || timeStr === "DNF") {
+                conditionPoints = 0;
             }
+
+            // Usuń istniejący wynik dla tego kierowcy na tym odcinku
+            state.results = state.results.filter(res => !(res.r === rIdx && res.s === sIdx && res.d === dId));
+            
+            // Dodaj nowy wynik
+            state.results.push({
+                r: rIdx,
+                s: sIdx,
+                d: dId,
+                time: timeStr,
+                ms: msValue,
+                cp: conditionPoints
+            });
+            
+            document.getElementById('admin-stage-time').value = '';
+            document.getElementById('stage-driver-select').value = '';
+            
+            renderAdminResultsTable();
+            showAdminStatus("Zapisano poprawnie");
+            refreshAllViews();
+            saveToLocalStorage();
         }
         
         function deleteResult(r, s, d) {
@@ -2274,7 +2401,14 @@
             const driverStats = calculateDriverStats();
             driverStats.sort((a,b) => b.total - a.total);
             
-            driverStats.slice(0, 5).forEach((d, i) => {
+            const driversToShow = driverStats.slice(0, 5);
+            
+            if (driversToShow.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="py-4 text-center text-gray-500 text-sm">BRAK DANYCH</td></tr>`;
+                return;
+            }
+            
+            driversToShow.forEach((d, i) => {
                 const tr = document.createElement('tr');
                 tr.className = "border-b border-[#222] hover:bg-[#1a1a1a]";
                 tr.innerHTML = `
@@ -2431,7 +2565,7 @@
                 
                 renderAdminDrivers();
                 refreshAllViews();
-                updateTeamAssignments(); // TO JEST WAŻNE!
+                updateTeamAssignments();
                 saveToLocalStorage();
                 showAdminStatus("Kierowca dodany");
             } else {
