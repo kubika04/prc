@@ -1455,60 +1455,114 @@
         }
 
         async function loadFromServer() {
+    try {
+        console.log("Ładowanie danych z serwera...");
+        
+        // Dodaj timestamp aby uniknąć cache
+        const timestamp = new Date().getTime();
+        const response = await fetch(`load_data.php?t=${timestamp}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Cache-Control': 'no-cache'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Błąd HTTP: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log("Odpowiedź z serwera:", result);
+        
+        if (result.success && result.data) {
+            const data = result.data;
+            
+            // Upewnij się, że dane mają poprawną strukturę
+            state.rounds = Array.isArray(data.rounds) ? data.rounds : DEFAULT_DATA.rounds;
+            state.drivers = Array.isArray(data.drivers) ? data.drivers : DEFAULT_DATA.drivers;
+            state.results = Array.isArray(data.results) ? data.results : DEFAULT_DATA.results;
+            state.changeLogs = Array.isArray(data.changeLogs) ? data.changeLogs : [];
+            
+            // Debug: pokaż liczbę załadowanych elementów
+            console.log(`Załadowano: ${state.drivers.length} kierowców, ${state.rounds.length} rund, ${state.results.length} wyników`);
+            
+            // Upewnij się, że każdy kierowca ma equalizationPoints
+            state.drivers.forEach(driver => {
+                if (driver.equalizationPoints === undefined) {
+                    driver.equalizationPoints = 0;
+                }
+                if (!driver.points) {
+                    driver.points = new Array(state.rounds.length).fill(0);
+                }
+            });
+            
+            return true;
+        } else {
+            console.log("Serwer zwrócił błąd:", result.message);
+            // Użyj danych domyślnych
+            loadDefaultData();
+            return false;
+        }
+    } catch (error) {
+        console.error("Błąd podczas wczytywania danych z serwera:", error);
+        
+        // Spróbuj użyć LocalStorage jako fallback
+        const savedData = localStorage.getItem('wrc_winter_cup_data');
+        if (savedData) {
             try {
-                const response = await fetch('load_data.php');
-                const result = await response.json();
-                
-                if (result.success) {
-                    const data = result.data;
-                    state.rounds = data.rounds || DEFAULT_DATA.rounds;
-                    state.drivers = data.drivers || DEFAULT_DATA.drivers;
-                    state.results = data.results || DEFAULT_DATA.results;
-                    state.changeLogs = data.changeLogs || [];
-                    
-                    // Upewnij się, że każdy kierowca ma equalizationPoints
-                    state.drivers.forEach(driver => {
-                        if (driver.equalizationPoints === undefined) {
-                            driver.equalizationPoints = 0;
-                        }
-                    });
-                    
-                    return true;
-                } else {
-                    // Jeśli serwer zwraca błąd, użyj danych domyślnych
-                    console.log("Używanie danych domyślnych:", result.message);
-                    loadDefaultData();
-                    return false;
-                }
-            } catch (error) {
-                console.error("Błąd podczas wczytywania danych z serwera:", error);
-                
-                // Fallback do LocalStorage
-                const savedData = localStorage.getItem('wrc_winter_cup_data');
-                if (savedData) {
-                    try {
-                        const parsed = JSON.parse(savedData);
-                        state.rounds = parsed.rounds || DEFAULT_DATA.rounds;
-                        state.drivers = parsed.drivers || DEFAULT_DATA.drivers;
-                        state.results = parsed.results || DEFAULT_DATA.results;
-                        state.changeLogs = parsed.changeLogs || [];
-                        return true;
-                    } catch (e) {
-                        console.error("Błąd LocalStorage:", e);
-                    }
-                }
-                
-                loadDefaultData();
-                return false;
+                const parsed = JSON.parse(savedData);
+                state.rounds = Array.isArray(parsed.rounds) ? parsed.rounds : DEFAULT_DATA.rounds;
+                state.drivers = Array.isArray(parsed.drivers) ? parsed.drivers : DEFAULT_DATA.drivers;
+                state.results = Array.isArray(parsed.results) ? parsed.results : DEFAULT_DATA.results;
+                state.changeLogs = Array.isArray(parsed.changeLogs) ? parsed.changeLogs : [];
+                console.log("Użyto danych z LocalStorage");
+                return true;
+            } catch (e) {
+                console.error("Błąd LocalStorage:", e);
             }
         }
+        
+        // Ostatecznie użyj danych domyślnych
+        loadDefaultData();
+        return false;
+    }
+}
 
         function loadDefaultData() {
-            state.rounds = JSON.parse(JSON.stringify(DEFAULT_DATA.rounds));
-            state.drivers = JSON.parse(JSON.stringify(DEFAULT_DATA.drivers));
-            state.results = JSON.parse(JSON.stringify(DEFAULT_DATA.results));
-            state.changeLogs = [];
+    // Użyj pełnych danych domyślnych z przykładowymi kierowcami
+    state.rounds = JSON.parse(JSON.stringify(DEFAULT_DATA.rounds));
+    state.drivers = [
+        {
+            id: 1,
+            name: "Jan Kowalski",
+            team: "Ford",
+            car: "Ford Fiesta R5",
+            points: new Array(DEFAULT_DATA.rounds.length).fill(0),
+            equalizationPoints: 0
+        },
+        {
+            id: 2,
+            name: "Piotr Nowak",
+            team: "Ford",
+            car: "Ford Fiesta R5",
+            points: new Array(DEFAULT_DATA.rounds.length).fill(0),
+            equalizationPoints: 0
+        },
+        {
+            id: 3,
+            name: "Anna Wiśniewska",
+            team: "Volkswagen",
+            car: "Volkswagen Polo GTI R5",
+            points: new Array(DEFAULT_DATA.rounds.length).fill(0),
+            equalizationPoints: 0
         }
+    ];
+    state.results = [];
+    state.changeLogs = [];
+    
+    console.log("Wczytano domyślne dane z przykładowymi kierowcami");
+}
 
         async function resetToDefaults() {
             if (confirm("Czy na pewno chcesz zresetować wszystkie dane do ustawień domyślnych? Ta operacja jest nieodwracalna i usunie wszystkich kierowców i wyniki.")) {
@@ -3995,28 +4049,47 @@ Aktualny lider: ${reportData.leader}`;
         }
 
         // --- INIT ---
-        window.addEventListener('DOMContentLoaded', async () => {
-            // Pokaż loader
-            document.getElementById('driver-leader-name').textContent = "Ładowanie...";
-            document.getElementById('constructor-leader-name').textContent = "Ładowanie...";
-            
-            // Wczytaj dane z serwera
-            await loadFromServer();
-            
-            // Oblicz punkty
-            await calculateAllRoundPoints();
-            
-            // Renderuj widoki
-            renderDriversTable();
-            renderConstructorsTable();
-            updateLeaders();
-            updateTeamAssignments();
-            router('home');
-            
-            // Uruchom rotację liderów
-            startLeaderRotation();
-        });
+       window.addEventListener('DOMContentLoaded', async () => {
+    // Pokaż loader
+    document.getElementById('driver-leader-name').textContent = "Ładowanie...";
+    document.getElementById('constructor-leader-name').textContent = "Ładowanie...";
+    
+    try {
+        // Wczytaj dane z serwera
+        const loaded = await loadFromServer();
+        
+        if (loaded) {
+            console.log("Dane wczytane z serwera");
+        } else {
+            console.log("Używanie danych domyślnych/fallback");
+        }
+        
+        // Oblicz punkty
+        await calculateAllRoundPoints();
+        
+        // Renderuj widoki
+        renderDriversTable();
+        renderConstructorsTable();
+        updateLeaders();
+        updateTeamAssignments();
+        router('home');
+        
+        // Uruchom rotację liderów
+        startLeaderRotation();
+        
+        // Pokaż komunikat jeśli brak danych
+        if (state.drivers.length === 0) {
+            console.log("Brak danych kierowców");
+        }
+        
+    } catch (error) {
+        console.error("Błąd inicjalizacji:", error);
+        document.getElementById('driver-leader-name').textContent = "Błąd ładowania";
+        document.getElementById('constructor-leader-name').textContent = "Błąd ładowania";
+    }
+});
 
     </script>
 </body>
 </html>
+
