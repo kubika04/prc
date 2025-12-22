@@ -1777,11 +1777,11 @@
                 let diffClass = '';
                 
                 if (res.type === 'dsq') {
-                    timeDisplay = '<span class="text-cherry-500">DSQ</span>';
-                    diff = '<span class="text-cherry-500">DSQ</span>';
+                    timeDisplay = '<span class="text-darkred-500">DSQ</span>';
+                    diff = '<span class="text-darkred-500">DSQ</span>';
                     rowClass = "hover:bg-[#151515] transition-colors";
-                    timeClass = 'text-cherry-500';
-                    diffClass = 'text-cherry-500';
+                    timeClass = 'text-darkred-500';
+                    diffClass = 'text-darkred-500';
                 } else if (res.type === 'dnf') {
                     const formattedTime = formatTimeForDisplay(res.displayTime);
                     timeDisplay = `${formattedTime}<span class="text-yellow-500" text-xs>*</span>`;
@@ -2686,6 +2686,7 @@
     </script>
 </body>
 </html>
+
 
 
 
