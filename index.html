@@ -225,15 +225,53 @@
             font-weight: bold;
         }
 
-        /* Chart styles */
-        .chart-bar {
-            background: linear-gradient(to right, #8B0000, #b91c1c);
-            border-radius: 2px;
-            transition: all 0.3s ease;
+        /* Table styles for quick editing */
+        .table-input {
+            background-color: transparent;
+            border: none;
+            color: white;
+            font-family: 'Source Code Pro', monospace;
+            width: 100%;
+            padding: 4px;
+            text-align: center;
         }
         
-        .chart-bar:hover {
-            opacity: 0.8;
+        .table-input:focus {
+            outline: 2px solid #8B0000;
+            background-color: rgba(139, 0, 0, 0.1);
+        }
+        
+        .table-select {
+            background-color: transparent;
+            border: none;
+            color: white;
+            font-family: 'Source Code Pro', monospace;
+            width: 100%;
+            padding: 4px;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .table-select:focus {
+            outline: 2px solid #8B0000;
+            background-color: rgba(139, 0, 0, 0.1);
+        }
+        
+        .quick-save-btn {
+            padding: 4px 8px;
+            font-size: 0.7rem;
+            margin-top: 4px;
+        }
+        
+        .time-input {
+            font-family: 'Source Code Pro', monospace;
+            letter-spacing: 1px;
+            text-align: right;
+        }
+        
+        .condition-select {
+            font-size: 0.75rem;
+            padding: 2px 4px;
         }
     </style>
 </head>
@@ -851,6 +889,7 @@
                         </div>
                         <nav class="space-y-1">
                             <button onclick="switchAdminModule('dashboard')" id="admin-nav-dashboard" class="w-full text-left px-4 py-3 font-mono text-sm uppercase tracking-wide transition-all border-l-2 border-l-[#8B0000] rounded-r-md bg-[#222] text-white">DASHBOARD</button>
+                            <button onclick="switchAdminModule('tables')" id="admin-nav-tables" class="w-full text-left px-4 py-3 font-mono text-sm uppercase tracking-wide transition-all border-l-2 rounded-r-md hover:bg-[#1a1a1a]">TABELE</button>
                             <button onclick="switchAdminModule('drivers')" id="admin-nav-drivers" class="w-full text-left px-4 py-3 font-mono text-sm uppercase tracking-wide transition-all border-l-2 rounded-r-md hover:bg-[#1a1a1a]">KIEROWCY</button>
                             <button onclick="switchAdminModule('stages')" id="admin-nav-stages" class="w-full text-left px-4 py-3 font-mono text-sm uppercase tracking-wide transition-all border-l-2 rounded-r-md hover:bg-[#1a1a1a]">ETAPY I WYNIKI</button>
                             <button onclick="switchAdminModule('scoring')" id="admin-nav-scoring" class="w-full text-left px-4 py-3 font-mono text-sm uppercase tracking-wide transition-all border-l-2 rounded-r-md hover:bg-[#1a1a1a]">PUNKTACJA</button>
@@ -912,17 +951,8 @@
                             </div>
                         </div>
 
-                        <!-- Wykresy aktywności i szybkie podsumowanie -->
+                        <!-- Szybkie podsumowanie i alerty -->
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <!-- Wykres aktywności -->
-                            <div class="technical-border bg-[#0E0E0E] p-5 rounded-xl">
-                                <h4 class="font-mono text-base font-bold mb-4 text-gray-300 border-b border-[#222] pb-2">AKTYWNOŚĆ (OSTATNIE 7 DNI)</h4>
-                                <div class="h-48 flex items-end justify-between pt-4" id="activity-chart">
-                                    <!-- Wykres zostanie wygenerowany przez JavaScript -->
-                                </div>
-                                <p class="text-xs text-gray-500 font-mono mt-3 text-center">Dodane wyniki dziennie</p>
-                            </div>
-
                             <!-- Szybkie podsumowanie -->
                             <div class="technical-border bg-[#0E0E0E] p-5 rounded-xl">
                                 <h4 class="font-mono text-base font-bold mb-4 text-gray-300 border-b border-[#222] pb-2">PODSUMOWANIE TURNIEJU</h4>
@@ -945,20 +975,6 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Ostatnie zmiany i alerty -->
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <!-- Ostatnie zmiany -->
-                            <div class="technical-border bg-[#0E0E0E] p-5 rounded-xl">
-                                <div class="flex justify-between items-center mb-4 border-b border-[#222] pb-2">
-                                    <h4 class="font-mono text-base font-bold text-gray-300">OSTATNIE ZMIANY</h4>
-                                    <button onclick="clearLogs()" class="text-xs text-gray-500 hover:text-white">Wyczyść</button>
-                                </div>
-                                <div class="space-y-3 max-h-60 overflow-y-auto pr-2" id="change-logs">
-                                    <!-- Logi zostaną dodane przez JavaScript -->
-                                </div>
-                            </div>
 
                             <!-- Alerty o brakujących danych -->
                             <div class="technical-border bg-[#0E0E0E] p-5 rounded-xl">
@@ -969,22 +985,16 @@
                             </div>
                         </div>
 
-                        <!-- Zarządzanie odcinkami i tester reguł -->
+                        <!-- Ostatnie zmiany i tester reguł -->
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <!-- Zarządzanie odcinkami -->
+                            <!-- Ostatnie zmiany -->
                             <div class="technical-border bg-[#0E0E0E] p-5 rounded-xl">
-                                <h4 class="font-mono text-base font-bold mb-4 text-gray-300 border-b border-[#222] pb-2">ZARZĄDZANIE ODCINKAMI</h4>
-                                <div class="space-y-3">
-                                    <div>
-                                        <label class="block text-xs font-mono text-gray-400 mb-1">Wybierz rajd:</label>
-                                        <select id="dashboard-round-select" class="input-dark text-sm" onchange="loadStagesForEdit()">
-                                            <!-- Załadowane przez JS -->
-                                        </select>
-                                    </div>
-                                    <div id="stage-edit-container" class="space-y-2 max-h-40 overflow-y-auto pr-2">
-                                        <!-- Lista odcinków do edycji -->
-                                    </div>
-                                    <button onclick="saveStageEdits()" class="btn-primary w-full mt-2 text-sm">ZAPISZ ZMIANY</button>
+                                <div class="flex justify-between items-center mb-4 border-b border-[#222] pb-2">
+                                    <h4 class="font-mono text-base font-bold text-gray-300">OSTATNIE ZMIANY</h4>
+                                    <button onclick="clearLogs()" class="text-xs text-gray-500 hover:text-white">Wyczyść</button>
+                                </div>
+                                <div class="space-y-3 max-h-60 overflow-y-auto pr-2" id="change-logs">
+                                    <!-- Logi zostaną dodane przez JavaScript -->
                                 </div>
                             </div>
 
@@ -1020,6 +1030,136 @@
                                     <div id="test-result" class="hidden p-3 bg-[#111] rounded-md border-l-4 border-yellow-600">
                                         <p class="text-xs font-mono text-gray-300" id="test-result-text"></p>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Zarządzanie odcinkami -->
+                        <div class="technical-border bg-[#0E0E0E] p-5 rounded-xl">
+                            <h4 class="font-mono text-base font-bold mb-4 text-gray-300 border-b border-[#222] pb-2">ZARZĄDZANIE ODCINKAMI</h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-mono text-gray-400 mb-1">Wybierz rajd:</label>
+                                    <select id="dashboard-round-select" class="input-dark text-sm" onchange="loadStagesForEdit()">
+                                        <!-- Załadowane przez JS -->
+                                    </select>
+                                </div>
+                                <div id="stage-edit-container" class="space-y-2 max-h-40 overflow-y-auto pr-2">
+                                    <!-- Lista odcinków do edycji -->
+                                </div>
+                                <button onclick="saveStageEdits()" class="btn-primary w-full mt-2 text-sm">ZAPISZ ZMIANY</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MODULE: TABELE (NOWY) -->
+                    <div id="module-tables" class="hidden space-y-6">
+                        <div class="flex justify-between items-center mb-6 border-b border-[#222] pb-4">
+                            <div>
+                                <h2 class="font-mono text-xl font-bold">TABELE WYNIKÓW</h2>
+                                <p class="text-sm text-gray-400 font-mono mt-1">SZYBKIE WPROWADZANIE I EDYCJA WYNIKÓW</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="saveAllTableResults()" class="btn-accent text-sm">ZAPISZ WSZYSTKO</button>
+                                <button onclick="refreshTableResults()" class="btn-primary text-sm">ODŚWIEŻ</button>
+                            </div>
+                        </div>
+
+                        <!-- Wybór etapu -->
+                        <div class="technical-border bg-[#0E0E0E] p-5 rounded-xl mb-6">
+                            <h4 class="font-mono text-base font-bold mb-4 text-gray-300 border-b border-[#222] pb-2">WYBIERZ ETAP I ODCINEK</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-mono text-gray-400 mb-1">Rajd:</label>
+                                    <select id="table-round-select" class="input-dark text-sm" onchange="loadTableStages()">
+                                        <!-- Załadowane przez JS -->
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-mono text-gray-400 mb-1">Odcinek Specjalny:</label>
+                                    <select id="table-stage-select" class="input-dark text-sm" onchange="loadTableResults()">
+                                        <!-- Załadowane przez JS -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between">
+                                <div class="text-sm font-mono text-gray-400" id="table-info">
+                                    Wybierz rajd i odcinek
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="addMissingDriversToTable()" class="btn-primary text-xs">DODAJ BRAKUJĄCYCH</button>
+                                    <button onclick="clearTableResults()" class="btn-primary text-xs border-red-500 text-red-500 hover:bg-red-500 hover:text-black">WYCZYŚĆ</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tabela do wprowadzania wyników -->
+                        <div class="technical-border bg-[#0F0F0F] rounded-xl overflow-hidden">
+                            <div class="p-3 border-b border-[#222] bg-[#151515] flex justify-between items-center">
+                                <h4 class="font-mono text-sm font-bold text-gray-400 uppercase">WPROWADŹ WYNIKI DLA ODCINKA</h4>
+                                <span class="text-xs font-mono text-[#8B0000]" id="table-stage-name">BRAK WYBORU</span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left min-w-[800px]">
+                                    <thead class="font-mono text-xs text-gray-400 border-b border-[#222] bg-[#1a1a1a]">
+                                        <tr>
+                                            <th class="p-3 w-16">#</th>
+                                            <th class="p-3">KIEROWCA</th>
+                                            <th class="p-3">ZESPÓŁ</th>
+                                            <th class="p-3 text-center" style="width: 150px;">CZAS (MM:SS.ms)</th>
+                                            <th class="p-3 text-center" style="width: 120px;">STAN AUTA</th>
+                                            <th class="p-3 text-center" style="width: 80px;">AKCJE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-results-body" class="font-mono text-sm">
+                                        <!-- Wyniki załadowane przez JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="p-4 border-t border-[#222] bg-[#151515]">
+                                <div class="flex justify-between items-center">
+                                    <div class="text-xs font-mono text-gray-400">
+                                        <span id="table-driver-count">0</span> kierowców w tabeli
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button onclick="saveTableResults()" class="btn-accent text-sm">ZAPISZ WYNIKI</button>
+                                    </div>
+                                </div>
+                                <div class="mt-3 p-3 bg-[#111] border-l-4 border-yellow-600 rounded-md">
+                                    <p class="text-xs font-mono text-gray-300">
+                                        <strong>Instrukcja:</strong><br>
+                                        1. Wpisz czas w formacie <strong>MM:SS.ms</strong> (np. 03:42.122)<br>
+                                        2. Możesz użyć <strong>DSQ</strong> lub <strong>DNF</strong> zamiast czasu<br>
+                                        3. Wybierz stan auta z listy<br>
+                                        4. Kliknij "ZAPISZ WYNIKI" lub "ZAPISZ WSZYSTKO"
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Szybkie narzędzia -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                            <div class="technical-border bg-[#0E0E0E] p-4 rounded-xl">
+                                <h4 class="font-mono text-sm font-bold mb-3 text-gray-300">KOPIUJ CZASY</h4>
+                                <div class="space-y-2">
+                                    <button onclick="copyTimesFromPreviousStage()" class="btn-primary w-full text-xs">KOPIUJ Z POPRZEDNIEGO OS</button>
+                                    <button onclick="applySameTimeToAll()" class="btn-primary w-full text-xs">USTAW TEN SAM CZAS DLA WSZYSTKICH</button>
+                                </div>
+                            </div>
+                            
+                            <div class="technical-border bg-[#0E0E0E] p-4 rounded-xl">
+                                <h4 class="font-mono text-sm font-bold mb-3 text-gray-300">MASOWE AKCJE</h4>
+                                <div class="space-y-2">
+                                    <button onclick="setAllCarsClean()" class="btn-primary w-full text-xs">WSZYSTKIE AUTO CZYSTE</button>
+                                    <button onclick="setAllTimesDNF()" class="btn-primary w-full text-xs border-red-500 text-red-500 hover:bg-red-500 hover:text-black">WSZYSTKIE DNF</button>
+                                </div>
+                            </div>
+                            
+                            <div class="technical-border bg-[#0E0E0E] p-4 rounded-xl">
+                                <h4 class="font-mono text-sm font-bold mb-3 text-gray-300">PODGLĄD</h4>
+                                <div class="space-y-2">
+                                    <button onclick="previewStageResults()" class="btn-primary w-full text-xs">PODGLĄD WYNIKÓW</button>
+                                    <button onclick="calculateStageRanking()" class="btn-primary w-full text-xs">OBLICZ KLASYFIKACJĘ</button>
                                 </div>
                             </div>
                         </div>
@@ -1260,7 +1400,7 @@
             drivers: [],
             results: [],
             changeLogs: [],
-            activityData: {}
+            // Usunięto activityData ponieważ wykres nie działał
         };
 
         // PUSTE dane początkowe
@@ -1278,8 +1418,7 @@
             ],
             drivers: [],
             results: [],
-            changeLogs: [],
-            activityData: {}
+            changeLogs: []
         };
 
         // --- LOCALSTORAGE FUNCTIONS ---
@@ -1289,8 +1428,7 @@
                 drivers: state.drivers,
                 results: state.results,
                 changeLogs: state.changeLogs,
-                activityData: state.activityData,
-                version: "1.4"
+                version: "1.5"
             };
             localStorage.setItem('wrc_winter_cup_data', JSON.stringify(dataToSave));
         }
@@ -1304,7 +1442,6 @@
                     state.drivers = parsed.drivers || DEFAULT_DATA.drivers;
                     state.results = parsed.results || DEFAULT_DATA.results;
                     state.changeLogs = parsed.changeLogs || [];
-                    state.activityData = parsed.activityData || {};
                     
                     // Upewnij się, że każdy kierowca ma equalizationPoints
                     state.drivers.forEach(driver => {
@@ -1312,11 +1449,6 @@
                             driver.equalizationPoints = 0;
                         }
                     });
-                    
-                    // Inicjalizuj dane aktywności jeśli nie istnieją
-                    if (!state.activityData || Object.keys(state.activityData).length === 0) {
-                        initializeActivityData();
-                    }
                     
                     return true;
                 } catch (e) {
@@ -1334,7 +1466,6 @@
             state.drivers = JSON.parse(JSON.stringify(DEFAULT_DATA.drivers));
             state.results = JSON.parse(JSON.stringify(DEFAULT_DATA.results));
             state.changeLogs = [];
-            initializeActivityData();
         }
 
         function resetToDefaults() {
@@ -1348,58 +1479,6 @@
         }
 
         // --- DASHBOARD FUNCTIONS ---
-        function initializeActivityData() {
-            // Inicjalizuj dane aktywności z ostatnich 7 dni
-            const today = new Date();
-            state.activityData = {};
-            
-            for (let i = 6; i >= 0; i--) {
-                const date = new Date();
-                date.setDate(today.getDate() - i);
-                const dateKey = date.toISOString().split('T')[0];
-                state.activityData[dateKey] = 0;
-            }
-            
-            // Zlicz istniejące wyniki według daty
-            if (state.results.length > 0) {
-                const today = new Date().toISOString().split('T')[0];
-                state.activityData[today] = state.results.length;
-            }
-        }
-
-        function updateActivityData() {
-            const today = new Date().toISOString().split('T')[0];
-            
-            // Dodaj nowe wyniki z dzisiaj
-            if (!state.activityData[today]) {
-                state.activityData[today] = 0;
-            }
-            
-            // Zlicz wyniki z dzisiaj
-            const todayResults = state.results.filter(result => {
-                // W rzeczywistej implementacji powinien być timestamp
-                // Dla demo używamy prostego liczenia
-                return true; // Wszystkie wyniki liczone jako dzisiejsze dla demo
-            }).length;
-            
-            state.activityData[today] = todayResults;
-            
-            // Ogranicz do ostatnich 7 dni
-            const todayDate = new Date();
-            const sevenDaysAgo = new Date();
-            sevenDaysAgo.setDate(todayDate.getDate() - 7);
-            
-            const filteredActivityData = {};
-            for (const [date, count] of Object.entries(state.activityData)) {
-                const dateObj = new Date(date);
-                if (dateObj >= sevenDaysAgo) {
-                    filteredActivityData[date] = count;
-                }
-            }
-            
-            state.activityData = filteredActivityData;
-        }
-
         function addLog(action, type = "user") {
             const timestamp = new Date().toLocaleString('pl-PL');
             const log = {
@@ -1435,7 +1514,6 @@
 
         function refreshDashboard() {
             updateStats();
-            renderActivityChart();
             renderChangeLogs();
             renderDataAlerts();
             updateTournamentSummary();
@@ -1499,56 +1577,6 @@ Aktualny lider: ${reportData.leader}
             document.getElementById('stat-stages').textContent = totalStages;
             
             document.getElementById('stat-results').textContent = state.results.length;
-        }
-
-        function renderActivityChart() {
-            const chartContainer = document.getElementById('activity-chart');
-            if (!chartContainer) return;
-            
-            chartContainer.innerHTML = '';
-            
-            // Pobierz ostatnie 7 dni
-            const dates = [];
-            const today = new Date();
-            
-            for (let i = 6; i >= 0; i--) {
-                const date = new Date();
-                date.setDate(today.getDate() - i);
-                const dateKey = date.toISOString().split('T')[0];
-                const dayName = date.toLocaleDateString('pl-PL', { weekday: 'short' });
-                dates.push({ key: dateKey, label: dayName });
-            }
-            
-            // Znajdź maksymalną wartość dla skalowania
-            const values = dates.map(d => state.activityData[d.key] || 0);
-            const maxValue = Math.max(...values, 1);
-            
-            // Renderuj słupki
-            dates.forEach(date => {
-                const value = state.activityData[date.key] || 0;
-                const height = maxValue > 0 ? (value / maxValue) * 100 : 0;
-                
-                const barContainer = document.createElement('div');
-                barContainer.className = "flex flex-col items-center mx-1 flex-1";
-                
-                const bar = document.createElement('div');
-                bar.className = "chart-bar w-full";
-                bar.style.height = `${height}%`;
-                bar.title = `${date.label}: ${value} wyników`;
-                
-                const label = document.createElement('div');
-                label.className = "text-xs text-gray-500 font-mono mt-1";
-                label.textContent = date.label;
-                
-                const valueLabel = document.createElement('div');
-                valueLabel.className = "text-xs text-gray-400 font-mono mt-1";
-                valueLabel.textContent = value;
-                
-                barContainer.appendChild(bar);
-                barContainer.appendChild(valueLabel);
-                barContainer.appendChild(label);
-                chartContainer.appendChild(barContainer);
-            });
         }
 
         function renderChangeLogs() {
@@ -1679,7 +1707,7 @@ Aktualny lider: ${reportData.leader}
                         } else if (alert.action === 'editTeam') {
                             switchAdminModule('drivers');
                         } else if (alert.action === 'addResults') {
-                            switchAdminModule('stages');
+                            switchAdminModule('tables'); // Zmieniono na tabele dla łatwiejszego wprowadzania
                         } else if (alert.action === 'editStages') {
                             loadStagesForEdit();
                         }
@@ -1909,6 +1937,472 @@ Aktualny lider: ${reportData.leader}
             document.getElementById('test-result').classList.remove('hidden');
             
             addLog("Przeprowadzono test reguł punktacji", "system");
+        }
+
+        // --- NOWE FUNKCJE DLA MODUŁU TABELE ---
+        
+        function loadTableStages() {
+            const roundSelect = document.getElementById('table-round-select');
+            const stageSelect = document.getElementById('table-stage-select');
+            const roundIndex = parseInt(roundSelect.value);
+            
+            if (isNaN(roundIndex) || !state.rounds[roundIndex]) {
+                stageSelect.innerHTML = '<option value="">Wybierz odcinek...</option>';
+                return;
+            }
+            
+            const round = state.rounds[roundIndex];
+            stageSelect.innerHTML = '<option value="">Wybierz odcinek...</option>';
+            
+            round.stages.forEach((stage, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = stage;
+                stageSelect.appendChild(option);
+            });
+        }
+        
+        function loadTableResults() {
+            const roundSelect = document.getElementById('table-round-select');
+            const stageSelect = document.getElementById('table-stage-select');
+            const roundIndex = parseInt(roundSelect.value);
+            const stageIndex = parseInt(stageSelect.value);
+            
+            if (isNaN(roundIndex) || isNaN(stageIndex)) {
+                document.getElementById('table-stage-name').textContent = "BRAK WYBORU";
+                document.getElementById('table-results-body').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-500 font-mono text-sm">Wybierz rajd i odcinek</td></tr>';
+                document.getElementById('table-driver-count').textContent = "0";
+                return;
+            }
+            
+            const round = state.rounds[roundIndex];
+            const stage = round.stages[stageIndex];
+            
+            document.getElementById('table-stage-name').textContent = `${round.name} - ${stage}`;
+            document.getElementById('table-info').textContent = `${round.name} - ${stage}`;
+            
+            // Renderuj tabelę z wynikami
+            renderTableResults(roundIndex, stageIndex);
+        }
+        
+        function renderTableResults(roundIndex, stageIndex) {
+            const tbody = document.getElementById('table-results-body');
+            tbody.innerHTML = '';
+            
+            if (state.drivers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-500 font-mono text-sm">Brak zarejestrowanych kierowców. Dodaj kierowców w zakładce "Kierowcy".</td></tr>';
+                document.getElementById('table-driver-count').textContent = "0";
+                return;
+            }
+            
+            // Znajdź istniejące wyniki dla tego odcinka
+            const existingResults = {};
+            state.results.forEach(result => {
+                if (result.r === roundIndex && result.s === stageIndex) {
+                    existingResults[result.d] = {
+                        time: result.time,
+                        cp: result.cp
+                    };
+                }
+            });
+            
+            // Renderuj wiersze dla każdego kierowcy
+            state.drivers.forEach((driver, index) => {
+                const existingResult = existingResults[driver.id] || {};
+                
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-[#151515] transition-colors border-b border-[#222]";
+                tr.dataset.driverId = driver.id;
+                
+                tr.innerHTML = `
+                    <td class="p-3 text-gray-500 font-mono">${index + 1}</td>
+                    <td class="p-3 font-mono font-bold text-white">${driver.name}</td>
+                    <td class="p-3 font-mono text-gray-400">${driver.team}</td>
+                    <td class="p-3 text-center">
+                        <input type="text" 
+                               class="table-input time-input" 
+                               value="${existingResult.time || ''}" 
+                               placeholder="MM:SS.ms lub DSQ/DNF"
+                               data-driver-id="${driver.id}"
+                               data-field="time">
+                    </td>
+                    <td class="p-3 text-center">
+                        <select class="table-select condition-select" data-driver-id="${driver.id}" data-field="condition">
+                            <option value="2" ${existingResult.cp === 2 ? 'selected' : ''}>Czysty (+2)</option>
+                            <option value="1" ${existingResult.cp === 1 ? 'selected' : ''}>Lekkie uszk. (+1)</option>
+                            <option value="0" ${existingResult.cp === 0 || !existingResult.cp ? 'selected' : ''}>Uszkodzenia (0)</option>
+                        </select>
+                    </td>
+                    <td class="p-3 text-center">
+                        <button onclick="saveSingleDriverResult(${driver.id})" class="btn-primary quick-save-btn">ZAPISZ</button>
+                    </td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+            
+            document.getElementById('table-driver-count').textContent = state.drivers.length;
+        }
+        
+        function saveSingleDriverResult(driverId) {
+            const roundIndex = parseInt(document.getElementById('table-round-select').value);
+            const stageIndex = parseInt(document.getElementById('table-stage-select').value);
+            
+            if (isNaN(roundIndex) || isNaN(stageIndex)) {
+                showAdminStatus("Wybierz rajd i odcinek", true);
+                return;
+            }
+            
+            const timeInput = document.querySelector(`input[data-driver-id="${driverId}"][data-field="time"]`);
+            const conditionSelect = document.querySelector(`select[data-driver-id="${driverId}"][data-field="condition"]`);
+            
+            if (!timeInput || !conditionSelect) {
+                showAdminStatus("Nie znaleziono danych kierowcy", true);
+                return;
+            }
+            
+            const timeStr = timeInput.value.trim().toUpperCase();
+            const conditionPoints = parseInt(conditionSelect.value);
+            
+            if (!timeStr) {
+                showAdminStatus("Wprowadź czas", true);
+                return;
+            }
+            
+            // Sprawdź czy to DSQ lub DNF
+            let msValue;
+            if (timeStr === "DSQ" || timeStr === "DNF") {
+                msValue = timeStr;
+            } else {
+                // Sprawdź format czasu
+                if (!timeStr.includes(':') || !timeStr.includes('.')) {
+                    showAdminStatus("Wprowadź poprawny czas (MM:SS.ms) lub DSQ/DNF", true);
+                    return;
+                }
+                
+                try {
+                    msValue = parseTime(timeStr);
+                } catch(e) {
+                    showAdminStatus("Błąd formatu czasu. Użyj MM:SS.ms lub DSQ/DNF", true);
+                    return;
+                }
+            }
+            
+            // DSQ i DNF nie dostają punktów bonusowych
+            const finalConditionPoints = (timeStr === "DSQ" || timeStr === "DNF") ? 0 : conditionPoints;
+            
+            // Usuń istniejący wynik dla tego kierowcy na tym odcinku
+            state.results = state.results.filter(res => !(res.r === roundIndex && res.s === stageIndex && res.d === driverId));
+            
+            // Dodaj nowy wynik
+            state.results.push({
+                r: roundIndex,
+                s: stageIndex,
+                d: driverId,
+                time: timeStr,
+                ms: msValue,
+                cp: finalConditionPoints
+            });
+            
+            saveToLocalStorage();
+            showAdminStatus("Zapisano wynik kierowcy");
+            
+            const driver = state.drivers.find(d => d.id === driverId);
+            const roundName = state.rounds[roundIndex]?.name || `Rajd ${roundIndex+1}`;
+            const stageName = state.rounds[roundIndex]?.stages[stageIndex] || `OS ${stageIndex+1}`;
+            addLog(`Zapisano wynik: ${driver?.name || 'Nieznany'} - ${roundName} - ${stageName}: ${timeStr}`, "system");
+        }
+        
+        function saveTableResults() {
+            const roundIndex = parseInt(document.getElementById('table-round-select').value);
+            const stageIndex = parseInt(document.getElementById('table-stage-select').value);
+            
+            if (isNaN(roundIndex) || isNaN(stageIndex)) {
+                showAdminStatus("Wybierz rajd i odcinek", true);
+                return;
+            }
+            
+            let savedCount = 0;
+            let errorCount = 0;
+            
+            // Zbierz wszystkie dane z tabeli
+            const timeInputs = document.querySelectorAll('input[data-field="time"]');
+            const conditionSelects = document.querySelectorAll('select[data-field="condition"]');
+            
+            // Usuń istniejące wyniki dla tego odcinka
+            state.results = state.results.filter(res => !(res.r === roundIndex && res.s === stageIndex));
+            
+            // Przetwarzaj każdego kierowcę
+            for (let i = 0; i < timeInputs.length; i++) {
+                const timeInput = timeInputs[i];
+                const conditionSelect = conditionSelects[i];
+                
+                const driverId = parseInt(timeInput.dataset.driverId);
+                const timeStr = timeInput.value.trim().toUpperCase();
+                const conditionPoints = parseInt(conditionSelect.value);
+                
+                // Jeśli czas jest pusty, pomiń
+                if (!timeStr) {
+                    continue;
+                }
+                
+                // Sprawdź czy to DSQ lub DNF
+                let msValue;
+                if (timeStr === "DSQ" || timeStr === "DNF") {
+                    msValue = timeStr;
+                } else {
+                    // Sprawdź format czasu
+                    if (!timeStr.includes(':') || !timeStr.includes('.')) {
+                        errorCount++;
+                        continue;
+                    }
+                    
+                    try {
+                        msValue = parseTime(timeStr);
+                    } catch(e) {
+                        errorCount++;
+                        continue;
+                    }
+                }
+                
+                // DSQ i DNF nie dostają punktów bonusowych
+                const finalConditionPoints = (timeStr === "DSQ" || timeStr === "DNF") ? 0 : conditionPoints;
+                
+                // Dodaj wynik
+                state.results.push({
+                    r: roundIndex,
+                    s: stageIndex,
+                    d: driverId,
+                    time: timeStr,
+                    ms: msValue,
+                    cp: finalConditionPoints
+                });
+                
+                savedCount++;
+            }
+            
+            saveToLocalStorage();
+            refreshAllViews();
+            
+            if (errorCount > 0) {
+                showAdminStatus(`Zapisano ${savedCount} wyników, ${errorCount} błędów`, true);
+            } else {
+                showAdminStatus(`Zapisano ${savedCount} wyników`);
+            }
+            
+            const roundName = state.rounds[roundIndex]?.name || `Rajd ${roundIndex+1}`;
+            const stageName = state.rounds[roundIndex]?.stages[stageIndex] || `OS ${stageIndex+1}`;
+            addLog(`Zapisano wyniki dla: ${roundName} - ${stageName} (${savedCount} wyników)`, "system");
+        }
+        
+        function saveAllTableResults() {
+            saveTableResults();
+        }
+        
+        function refreshTableResults() {
+            const roundIndex = parseInt(document.getElementById('table-round-select').value);
+            const stageIndex = parseInt(document.getElementById('table-stage-select').value);
+            
+            if (!isNaN(roundIndex) && !isNaN(stageIndex)) {
+                renderTableResults(roundIndex, stageIndex);
+                showAdminStatus("Tabela odświeżona");
+            } else {
+                showAdminStatus("Wybierz rajd i odcinek", true);
+            }
+        }
+        
+        function clearTableResults() {
+            const roundIndex = parseInt(document.getElementById('table-round-select').value);
+            const stageIndex = parseInt(document.getElementById('table-stage-select').value);
+            
+            if (isNaN(roundIndex) || isNaN(stageIndex)) {
+                showAdminStatus("Wybierz rajd i odcinek", true);
+                return;
+            }
+            
+            if (confirm("Czy na pewno wyczyścić wszystkie wyniki dla tego odcinka?")) {
+                // Usuń wyniki dla tego odcinka
+                state.results = state.results.filter(res => !(res.r === roundIndex && res.s === stageIndex));
+                
+                saveToLocalStorage();
+                refreshTableResults();
+                refreshAllViews();
+                showAdminStatus("Wyniki wyczyszczone");
+                
+                const roundName = state.rounds[roundIndex]?.name || `Rajd ${roundIndex+1}`;
+                const stageName = state.rounds[roundIndex]?.stages[stageIndex] || `OS ${stageIndex+1}`;
+                addLog(`Wyczyszczono wyniki dla: ${roundName} - ${stageName}`, "system");
+            }
+        }
+        
+        function addMissingDriversToTable() {
+            // Ta funkcja już jest zaimplementowana w renderTableResults
+            // Wszyscy kierowcy są automatycznie dodawani
+            refreshTableResults();
+            showAdminStatus("Wszyscy kierowcy dodani do tabeli");
+        }
+        
+        function copyTimesFromPreviousStage() {
+            const roundIndex = parseInt(document.getElementById('table-round-select').value);
+            const stageIndex = parseInt(document.getElementById('table-stage-select').value);
+            
+            if (isNaN(roundIndex) || isNaN(stageIndex)) {
+                showAdminStatus("Wybierz rajd i odcinek", true);
+                return;
+            }
+            
+            if (stageIndex === 0) {
+                showAdminStatus("To jest pierwszy odcinek w rajdzie", true);
+                return;
+            }
+            
+            const previousStageIndex = stageIndex - 1;
+            const previousResults = {};
+            
+            // Zbierz wyniki z poprzedniego odcinka
+            state.results.forEach(result => {
+                if (result.r === roundIndex && result.s === previousStageIndex) {
+                    previousResults[result.d] = {
+                        time: result.time,
+                        cp: result.cp
+                    };
+                }
+            });
+            
+            // Zastosuj wyniki do bieżącej tabeli
+            Object.keys(previousResults).forEach(driverId => {
+                const result = previousResults[driverId];
+                const timeInput = document.querySelector(`input[data-driver-id="${driverId}"][data-field="time"]`);
+                const conditionSelect = document.querySelector(`select[data-driver-id="${driverId}"][data-field="condition"]`);
+                
+                if (timeInput && conditionSelect) {
+                    timeInput.value = result.time;
+                    conditionSelect.value = result.cp.toString();
+                }
+            });
+            
+            showAdminStatus("Skopiowano czasy z poprzedniego odcinka");
+            addLog(`Skopiowano czasy z poprzedniego odcinka`, "system");
+        }
+        
+        function applySameTimeToAll() {
+            const timeStr = prompt("Wprowadź czas do zastosowania dla wszystkich kierowców (MM:SS.ms lub DSQ/DNF):", "03:00.000");
+            
+            if (timeStr === null) return;
+            
+            const timeInputs = document.querySelectorAll('input[data-field="time"]');
+            timeInputs.forEach(input => {
+                input.value = timeStr.trim().toUpperCase();
+            });
+            
+            showAdminStatus("Czas zastosowany dla wszystkich kierowców");
+        }
+        
+        function setAllCarsClean() {
+            const conditionSelects = document.querySelectorAll('select[data-field="condition"]');
+            conditionSelects.forEach(select => {
+                select.value = "2";
+            });
+            
+            showAdminStatus("Wszystkie auta ustawione jako czyste");
+        }
+        
+        function setAllTimesDNF() {
+            const timeInputs = document.querySelectorAll('input[data-field="time"]');
+            timeInputs.forEach(input => {
+                input.value = "DNF";
+            });
+            
+            showAdminStatus("Wszystkie czasy ustawione jako DNF");
+        }
+        
+        function previewStageResults() {
+            // Ta funkcja pokaże podgląd wyników w formie uporządkowanej tabeli
+            const roundIndex = parseInt(document.getElementById('table-round-select').value);
+            const stageIndex = parseInt(document.getElementById('table-stage-select').value);
+            
+            if (isNaN(roundIndex) || isNaN(stageIndex)) {
+                showAdminStatus("Wybierz rajd i odcinek", true);
+                return;
+            }
+            
+            // Zbierz dane z tabeli
+            const timeInputs = document.querySelectorAll('input[data-field="time"]');
+            const results = [];
+            
+            for (let i = 0; i < timeInputs.length; i++) {
+                const timeInput = timeInputs[i];
+                const driverId = parseInt(timeInput.dataset.driverId);
+                const timeStr = timeInput.value.trim().toUpperCase();
+                
+                if (!timeStr) continue;
+                
+                const driver = state.drivers.find(d => d.id === driverId);
+                if (!driver) continue;
+                
+                // Konwertuj czas na milisekundy dla sortowania
+                let timeMs;
+                if (timeStr === "DSQ") {
+                    timeMs = Infinity;
+                } else if (timeStr === "DNF") {
+                    timeMs = Infinity - 1; // DNF przed DSQ
+                } else {
+                    try {
+                        timeMs = parseTime(timeStr);
+                    } catch(e) {
+                        timeMs = Infinity;
+                    }
+                }
+                
+                results.push({
+                    driverId: driverId,
+                    driverName: driver.name,
+                    timeStr: timeStr,
+                    timeMs: timeMs
+                });
+            }
+            
+            // Sortuj wyniki
+            results.sort((a, b) => a.timeMs - b.timeMs);
+            
+            // Wyświetl podgląd
+            let previewText = "PODGLĄD WYNIKÓW:\n\n";
+            results.forEach((result, index) => {
+                const position = index + 1;
+                previewText += `${position}. ${result.driverName}: ${result.timeStr}\n`;
+            });
+            
+            alert(previewText);
+        }
+        
+        function calculateStageRanking() {
+            previewStageResults(); // Użyj tej samej funkcji co podgląd
+        }
+        
+        function initTableModule() {
+            const roundSelect = document.getElementById('table-round-select');
+            const stageSelect = document.getElementById('table-stage-select');
+            
+            // Wypełnij listę rajdów
+            roundSelect.innerHTML = '<option value="">Wybierz rajd...</option>';
+            state.rounds.forEach((round, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${round.name} (${round.stages.length} OS)`;
+                roundSelect.appendChild(option);
+            });
+            
+            // Ustaw pierwszy rajd jeśli istnieje
+            if (state.rounds.length > 0) {
+                roundSelect.value = 0;
+                loadTableStages();
+                
+                // Ustaw pierwszy odcinek jeśli istnieje
+                if (state.rounds[0].stages.length > 0) {
+                    stageSelect.value = 0;
+                    loadTableResults();
+                }
+            }
         }
 
         // --- HELPER FUNCTIONS ---
@@ -2343,11 +2837,12 @@ Aktualny lider: ${reportData.leader}
 
         function switchAdminModule(moduleName) {
             document.getElementById('module-dashboard').classList.add('hidden');
+            document.getElementById('module-tables').classList.add('hidden');
             document.getElementById('module-drivers').classList.add('hidden');
             document.getElementById('module-stages').classList.add('hidden');
             document.getElementById('module-scoring').classList.add('hidden');
             
-            ['dashboard', 'drivers', 'stages', 'scoring'].forEach(m => {
+            ['dashboard', 'tables', 'drivers', 'stages', 'scoring'].forEach(m => {
                 const nav = document.getElementById(`admin-nav-${m}`);
                 if (nav) {
                     nav.classList.remove('bg-[#222]', 'text-white', 'border-l-[#8B0000]');
@@ -2364,6 +2859,9 @@ Aktualny lider: ${reportData.leader}
             
             if(moduleName === 'dashboard') {
                 refreshDashboard();
+            }
+            if(moduleName === 'tables') {
+                initTableModule();
             }
             if(moduleName === 'stages') initAdminStages();
             if(moduleName === 'scoring') renderScoringPreview();
@@ -3184,7 +3682,6 @@ Aktualny lider: ${reportData.leader}
             showAdminStatus("Zapisano poprawnie");
             refreshAllViews();
             saveToLocalStorage();
-            updateActivityData();
             
             const driver = state.drivers.find(d => d.id === dId);
             const roundName = state.rounds[rIdx]?.name || `Rajd ${rIdx+1}`;
@@ -3285,7 +3782,6 @@ Aktualny lider: ${reportData.leader}
                 drivers: state.drivers,
                 results: state.results,
                 changeLogs: state.changeLogs,
-                activityData: state.activityData,
                 exportDate: new Date().toISOString()
             };
             
@@ -3326,7 +3822,6 @@ Aktualny lider: ${reportData.leader}
                             state.drivers = importedData.drivers;
                             state.results = importedData.results;
                             state.changeLogs = importedData.changeLogs || [];
-                            state.activityData = importedData.activityData || {};
                             
                             // Upewnij się, że każdy kierowca ma equalizationPoints
                             state.drivers.forEach(driver => {
@@ -3389,6 +3884,7 @@ Aktualny lider: ${reportData.leader}
                 initAdminStages();
                 renderScoringPreview();
                 refreshDashboard();
+                initTableModule();
                 addLog("Zalogowano do panelu admina", "system");
             } else {
                 errorEl.textContent = "Nieprawidłowy login lub hasło.";
@@ -3477,9 +3973,6 @@ Aktualny lider: ${reportData.leader}
             
             // Uruchom rotację liderów
             startLeaderRotation();
-            
-            // Inicjalizuj dane aktywności
-            updateActivityData();
         });
 
     </script>
