@@ -2019,3 +2019,56 @@ function startLeaderRotation() {
         showLeader(nextLeader);
     }, 5000); // Zmiana co 5 sekund
 }
+
+            function showLeader(type) {
+    state.currentLeader = type;
+    
+    // Aktualizuj przyciski
+    document.querySelectorAll('.leader-dot').forEach(dot => {
+        dot.classList.remove('active');
+    });
+    document.querySelector(`.leader-dot[data-target="${type}"]`).classList.add('animation');
+    
+    // Ukryj wszystkie panele
+    document.getElementById('leader-driver').style.opacity = '0';
+    document.getElementById('leader-constructor').style.opacity = '0';
+    
+    // Pokaż odpowiedni panel z animacją
+    const leaderElement = document.getElementById(`leader-${type}`);
+    leaderElement.style.opacity = '1';
+    
+    // Załaduj aktualne dane lidera
+    if (type === 'driver') {
+        const leader = calculateDriverLeader();
+        document.getElementById('driver-leader-name').textContent = leader.name || "Brak danych";
+        document.getElementById('driver-leader-points').textContent = leader.total || 0;
+    } else {
+        const leader = calculateConstructorLeader();
+        document.getElementById('constructor-leader-name').textContent = leader.name || "Brak danych";
+        document.getElementById('constructor-leader-points').textContent = leader.total || 0;
+    }
+}
+
+            function calculateDriverLeader() {
+    if (state.drivers.length === 0) {
+        return { name: "Brak danych", total: 0 };
+    }
+    
+    // Oblicz punkty dla każdego kierowcy
+    const driversWithPoints = state.drivers.map(driver => {
+        const total = (driver.points || []).reduce((sum, points) => sum + points, 0) + (driver.equalizationPoints || 0);
+        return { ...driver, total };
+    });
+    
+    // Posortuj malejąco
+    driversWithPoints.sort((a, b) => b.total - a.total);
+    
+    return driversWithPoints[0];
+}
+
+function calculateConstructorLeader() {
+    // Logika obliczania lidera konstruktorów
+    // ...
+    return { name: "Brak danych", total: 0 };
+}
+            </script>
