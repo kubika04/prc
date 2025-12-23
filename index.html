@@ -1178,7 +1178,7 @@
                                     </div>
                                     <div class="flex justify-between items-center">
                                         <span class="font-mono text-sm text-gray-400">Cloud Sync:</span>
-                                        <span class="font-mono text-xs" id="last-cloud-sync">-</span>
+                                        <span class="font-mono text-xs" id="last-cloud-sync">  -</span>
                                     </div>
                                 </div>
                             </div>
@@ -2854,6 +2854,7 @@ Aktualny lider: ${reportData.leader}
             return setCached(cacheKey, driverTimes);
         }
 
+        // POPRAWIONA FUNKCJA: Teraz obsługuje kierowców z niepełnymi wynikami
         function calculateTotalTimeForDriverInRound(driverId, roundIndex) {
             let totalMs = 0;
             const roundResults = state.results.filter(res => res.r === roundIndex && res.d === driverId);
@@ -2867,7 +2868,7 @@ Aktualny lider: ${reportData.leader}
             // Zbierz wszystkie czasy które nie są DSQ
             const validResults = roundResults.filter(result => result.time !== "DSQ");
             
-            // Jeśli nie ma żadnych wyników, zwróć null
+            // Jeśli nie ma żadnych wyników, zwróć null (kierowca nie startował)
             if (validResults.length === 0) {
                 return null;
             }
@@ -2881,15 +2882,24 @@ Aktualny lider: ${reportData.leader}
                 }
             });
             
-            // Oblicz sumę czasów
-            validResults.forEach(result => {
-                if (result.time === "DNF") {
-                    // DNF = najgorszy czas + 20 sekund
+            // Dla każdego odcinka, jeśli kierowca nie ma wyniku, traktujemy jako DNF
+            const roundStagesCount = state.rounds[roundIndex].stages.length;
+            
+            for (let stageIndex = 0; stageIndex < roundStagesCount; stageIndex++) {
+                const stageResult = validResults.find(res => res.s === stageIndex);
+                
+                if (stageResult) {
+                    if (stageResult.time === "DNF") {
+                        // DNF = najgorszy czas + 20 sekund
+                        totalMs += worstTimeInRound + 20000;
+                    } else if (typeof stageResult.ms === 'number') {
+                        totalMs += stageResult.ms;
+                    }
+                } else {
+                    // Brak wyniku dla tego odcinka = DNF
                     totalMs += worstTimeInRound + 20000;
-                } else if (typeof result.ms === 'number') {
-                    totalMs += result.ms;
                 }
-            });
+            }
             
             return totalMs;
         }
@@ -2988,17 +2998,21 @@ Aktualny lider: ${reportData.leader}
                     const standings = getRoundStandings(roundIndex);
                     const pointsSystem = [15, 12, 10, 8, 6, 4, 2, 1];
                     
-                    let position = 0;
+                    // Licznik pozycji dla punktów
+                    let pointsPosition = 0;
+                    
                     for (let i = 0; i < standings.length; i++) {
                         const standing = standings[i];
                         const driver = state.drivers.find(d => d.id === standing.driverId);
                         
                         if (driver && standing.totalMs !== "DSQ") {
-                            if (position < pointsSystem.length) {
-                                driver.points[roundIndex] = pointsSystem[position];
-                                position++;
+                            // Jeśli kierowca ma czas (nie DSQ) i są jeszcze punkty do rozdania
+                            if (pointsPosition < pointsSystem.length) {
+                                driver.points[roundIndex] = pointsSystem[pointsPosition];
+                                pointsPosition++;
                             }
                         }
+                        // Kierowcy z DSQ dostają 0 punktów (już ustawione)
                     }
                 }
                 
@@ -3615,7 +3629,8 @@ Aktualny lider: ${reportData.leader}
                 for (let i = 0; i < state.rounds.length; i++) {
                     td = document.createElement('td');
                     td.className = `py-3 md:py-4 px-2 md:px-4 text-right ${isLeader ? 'text-gray-800' : 'text-gray-500'}`;
-                    td.textContent = driver.points[i] || '-';
+                    const points = driver.points[i] || 0;
+                    td.textContent = points > 0 ? points : '-';
                     tr.appendChild(td);
                 }
                 
