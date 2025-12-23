@@ -1161,14 +1161,6 @@
                                 <h4 class="font-mono text-base font-bold mb-4 text-gray-300 border-b border-[#222] pb-2">PODSUMOWANIE TURNIEJU</h4>
                                 <div class="space-y-3">
                                     <div class="flex justify-between items-center">
-                                        <span class="font-mono text-sm text-gray-400">Status turnieju:</span>
-                                        <span class="font-mono text-sm font-bold text-green-500" id="tournament-status">AKTYWNY</span>
-                                    </div>
-                                    <div class="flex justify-between items-center">
-                                        <span class="font-mono text-sm text-gray-400">Progres:</span>
-                                        <span class="font-mono text-sm" id="tournament-progress">0%</span>
-                                    </div>
-                                    <div class="flex justify-between items-center">
                                         <span class="font-mono text-sm text-gray-400">Lider:</span>
                                         <span class="font-mono text-sm font-bold" id="tournament-leader">-</span>
                                     </div>
@@ -2108,17 +2100,6 @@ Aktualny lider: ${reportData.leader}
             const driverLeader = calculateDriverLeader();
             
             document.getElementById('tournament-leader').textContent = driverLeader.name || "-";
-            
-            // Oblicz progres
-            const totalStages = state.rounds.reduce((sum, round) => sum + round.stages.length, 0);
-            const stagesWithResults = [...new Set(state.results.map(r => `${r.r}-${r.s}`))].length;
-            const progress = totalStages > 0 ? Math.round((stagesWithResults / totalStages) * 100) : 0;
-            
-            document.getElementById('tournament-progress').textContent = `${progress}%`;
-            document.getElementById('tournament-progress').className = `font-mono text-sm ${progress === 100 ? 'text-green-500' : progress > 50 ? 'text-yellow-500' : 'text-red-500'}`;
-            
-            document.getElementById('tournament-status').textContent = progress === 100 ? 'ZAKOŃCZONY' : 'AKTYWNY';
-            document.getElementById('tournament-status').className = `font-mono text-sm font-bold ${progress === 100 ? 'text-green-500' : 'text-yellow-500'}`;
             
             document.getElementById('last-update').textContent = new Date().toLocaleString('pl-PL', {
                 hour: '2-digit',
@@ -4437,5 +4418,3 @@ Aktualny lider: ${reportData.leader}
     </script>
 </body>
 </html>
-
-
