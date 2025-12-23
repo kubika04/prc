@@ -2101,6 +2101,7 @@ Aktualny lider: ${reportData.leader}
             
             document.getElementById('tournament-leader').textContent = driverLeader.name || "-";
             
+            // Aktualizuj timestamp
             document.getElementById('last-update').textContent = new Date().toLocaleString('pl-PL', {
                 hour: '2-digit',
                 minute: '2-digit'
@@ -3032,7 +3033,7 @@ Aktualny lider: ${reportData.leader}
             return setCached(CACHE_KEYS.DRIVER_STATS, result);
         }
 
-        // OPTIMIZATION: Cached constructor stats calculation
+        // OPTIMIZATION: Cached constructor stats calculation - POPRAWIONA
         function calculateConstructorStats() {
             const cached = getCached(CACHE_KEYS.CONSTRUCTOR_STATS);
             if (cached) return cached;
@@ -3056,7 +3057,7 @@ Aktualny lider: ${reportData.leader}
                 .map(([team, points]) => ({
                     team,
                     points,
-                    drivers: teamDrivers[team]
+                    drivers: teamDrivers[team] || []
                 }));
             
             return setCached(CACHE_KEYS.CONSTRUCTOR_STATS, result);
@@ -3079,9 +3080,68 @@ Aktualny lider: ${reportData.leader}
             if (cached) return cached;
             
             const constructorStats = calculateConstructorStats();
-            const result = constructorStats[0] || { team: "Brak danych", points: 0 };
+            const result = constructorStats[0] || { team: "Brak danych", points: 0, drivers: [] };
             
             return setCached(CACHE_KEYS.CONSTRUCTOR_LEADER, result);
+        }
+
+        // --- POPRAWIONA FUNKCJA renderConstructorsTable ---
+        function renderConstructorsTable() {
+            const tbody = document.getElementById('constructors-ranking-body');
+            tbody.innerHTML = '';
+            
+            const constructorStats = calculateConstructorStats();
+
+            constructorStats.forEach((constructor, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-[#111] transition-colors";
+                
+                // Position
+                let td = document.createElement('td');
+                td.className = "py-3 md:py-4 px-2 md:px-4 text-gray-400 font-mono";
+                td.textContent = index + 1;
+                tr.appendChild(td);
+                
+                // Constructor Name
+                td = document.createElement('td');
+                td.className = "py-3 md:py-4 px-2 md:px-4 font-bold text-white";
+                td.textContent = constructor.team;
+                tr.appendChild(td);
+                
+                // Drivers - POPRAWIONE: wyświetlanie wszystkich kierowców
+                td = document.createElement('td');
+                td.className = "py-3 md:py-4 px-2 md:px-4 text-sm text-gray-400";
+                
+                if (constructor.drivers && constructor.drivers.length > 0) {
+                    // Sprawdź czy to tablica stringów czy obiektów
+                    if (typeof constructor.drivers[0] === 'string') {
+                        td.textContent = constructor.drivers.join(', ');
+                    } else if (typeof constructor.drivers[0] === 'object') {
+                        // Jeśli to obiekty, wyciągnij tylko nazwy
+                        td.textContent = constructor.drivers.map(d => d.name || d).join(', ');
+                    } else {
+                        td.textContent = constructor.drivers.join(', ');
+                    }
+                } else {
+                    td.textContent = "Brak kierowców";
+                }
+                tr.appendChild(td);
+                
+                // Total Points
+                td = document.createElement('td');
+                td.className = "py-3 md:py-4 px-2 md:px-4 text-right text-[#8B0000] font-bold text-lg";
+                td.textContent = constructor.points;
+                tr.appendChild(td);
+                
+                tbody.appendChild(tr);
+            });
+            
+            // Jeśli nie ma konstruktorów, pokaż komunikat
+            if (constructorStats.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td colspan="4" class="py-8 text-center text-gray-500 font-mono text-sm">BRAK DANYCH. DODAJ KIEROWCÓW W PANELU ADMINA.</td>`;
+                tbody.appendChild(tr);
+            }
         }
 
         // --- OPTIMIZED VIEW REFRESHING ---
@@ -3095,7 +3155,7 @@ Aktualny lider: ${reportData.leader}
                     break;
                 case 'championship':
                     renderDriversTable();
-                    renderConstructorsTable();
+                    renderConstructorsTable(); // Używamy poprawionej funkcji
                     break;
                 case 'results':
                     renderStageResults();
@@ -3227,7 +3287,7 @@ Aktualny lider: ${reportData.leader}
             if(viewName === 'championship') {
                 document.getElementById('nav-champ')?.classList.add('text-[#8B0000]');
                 renderDriversTable();
-                renderConstructorsTable();
+                renderConstructorsTable(); // Używamy poprawionej funkcji
             }
             if(viewName === 'results') {
                 document.getElementById('nav-results')?.classList.add('text-[#8B0000]');
@@ -3626,51 +3686,6 @@ Aktualny lider: ${reportData.leader}
             if (driverStats.length === 0) {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `<td colspan="${headers.length}" class="py-8 text-center text-gray-500 font-mono text-sm">BRAK DANYCH. DODAJ KIEROWCÓW W PANELU ADMINA.</td>`;
-                tbody.appendChild(tr);
-            }
-        }
-        
-        function renderConstructorsTable() {
-            const tbody = document.getElementById('constructors-ranking-body');
-            tbody.innerHTML = '';
-            
-            const constructorStats = calculateConstructorStats();
-
-            constructorStats.forEach((constructor, index) => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-[#111] transition-colors";
-                
-                // Position
-                let td = document.createElement('td');
-                td.className = "py-3 md:py-4 px-2 md:px-4 text-gray-400 font-mono";
-                td.textContent = index + 1;
-                tr.appendChild(td);
-                
-                // Constructor Name
-                td = document.createElement('td');
-                td.className = "py-3 md:py-4 px-2 md:px-4 font-bold text-white";
-                td.textContent = constructor.team;
-                tr.appendChild(td);
-                
-                // Drivers
-                td = document.createElement('td');
-                td.className = "py-3 md:py-4 px-2 md:px-4 text-sm text-gray-400";
-                td.textContent = constructor.drivers.join(', ');
-                tr.appendChild(td);
-                
-                // Total Points
-                td = document.createElement('td');
-                td.className = "py-3 md:py-4 px-2 md:px-4 text-right text-[#8B0000] font-bold text-lg";
-                td.textContent = constructor.points;
-                tr.appendChild(td);
-                
-                tbody.appendChild(tr);
-            });
-            
-            // Jeśli nie ma konstruktorów, pokaż komunikat
-            if (constructorStats.length === 0) {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td colspan="4" class="py-8 text-center text-gray-500 font-mono text-sm">BRAK DANYCH. DODAJ KIEROWCÓW W PANELU ADMINA.</td>`;
                 tbody.appendChild(tr);
             }
         }
@@ -4384,7 +4399,7 @@ Aktualny lider: ${reportData.leader}
             
             // Renderuj widoki
             renderDriversTable();
-            renderConstructorsTable();
+            renderConstructorsTable(); // Używamy poprawionej funkcji
             updateLeaders();
             updateTeamAssignments();
             router('home');
