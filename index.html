@@ -2486,6 +2486,8 @@ Aktualny lider: ${reportData.leader}
             });
             
             saveData();
+            calculateAllRoundPoints(); // Dodane: przelicz punkty
+            refreshVisibleView();
             showAdminStatus("Zapisano wynik kierowcy");
         }
         
@@ -2558,6 +2560,7 @@ Aktualny lider: ${reportData.leader}
             }
             
             saveData();
+            calculateAllRoundPoints(); // Dodane: przelicz punkty
             refreshVisibleView();
             
             if (errorCount > 0) {
@@ -2597,6 +2600,7 @@ Aktualny lider: ${reportData.leader}
                 state.results = state.results.filter(res => !(res.r === roundIndex && res.s === stageIndex));
                 
                 saveData();
+                calculateAllRoundPoints(); // Dodane: przelicz punkty
                 refreshTableResults();
                 refreshVisibleView();
                 showAdminStatus("Wyniki wyczyszczone");
@@ -2987,6 +2991,9 @@ Aktualny lider: ${reportData.leader}
                 
                 // Oblicz punkty wyrównawcze
                 calculateEqualizationPoints();
+                
+                // Invalidate cache po przeliczeniu
+                invalidateCache();
             } finally {
                 state.isCalculating = false;
                 
@@ -3089,8 +3096,6 @@ Aktualny lider: ${reportData.leader}
 
         // --- OPTIMIZED VIEW REFRESHING ---
         function refreshVisibleView() {
-            invalidateCache(); // Invalidate cache when data changes
-            
             // Aktualizuj tylko widoczny widok
             switch(state.view) {
                 case 'home':
@@ -3126,7 +3131,6 @@ Aktualny lider: ${reportData.leader}
         }
 
         function recalculateAllPoints() {
-            invalidateCache();
             calculateAllRoundPoints();
             refreshVisibleView();
             showAdminStatus("Punkty przeliczone pomyślnie");
@@ -3876,6 +3880,7 @@ Aktualny lider: ${reportData.leader}
                 
                 showAdminStatus("Dane kierowcy zaktualizowane");
                 renderAdminDrivers();
+                calculateAllRoundPoints(); // Dodane: przelicz punkty
                 refreshVisibleView();
                 updateTeamAssignments();
                 saveData();
@@ -4107,6 +4112,7 @@ Aktualny lider: ${reportData.leader}
             document.getElementById('stage-driver-select').value = '';
             
             renderAdminResultsTable();
+            calculateAllRoundPoints(); // Dodane: przelicz punkty
             showAdminStatus("Zapisano poprawnie");
             refreshVisibleView();
             saveData();
@@ -4116,6 +4122,7 @@ Aktualny lider: ${reportData.leader}
             if(confirm("Usunąć ten wynik?")) {
                 state.results = state.results.filter(res => !(res.r === r && res.s === s && res.d === d));
                 renderAdminResultsTable();
+                calculateAllRoundPoints(); // Dodane: przelicz punkty
                 refreshVisibleView();
                 saveData();
                 showAdminStatus("Wynik usunięty");
@@ -4247,6 +4254,7 @@ Aktualny lider: ${reportData.leader}
                                 }
                             });
                             
+                            calculateAllRoundPoints(); // Dodane: przelicz punkty
                             saveData();
                             refreshVisibleView();
                             showAdminStatus("Dane zaimportowane pomyślnie");
@@ -4276,6 +4284,7 @@ Aktualny lider: ${reportData.leader}
                     }
                     
                     driver.points = pointsArray;
+                    calculateAllRoundPoints(); // Dodane: przelicz punkty
                     showAdminStatus("Punkty zaktualizowane");
                     refreshVisibleView();
                     saveData();
@@ -4342,6 +4351,7 @@ Aktualny lider: ${reportData.leader}
                 toggleDriverForm();
                 
                 renderAdminDrivers();
+                calculateAllRoundPoints(); // Dodane: przelicz punkty
                 refreshVisibleView();
                 updateTeamAssignments();
                 saveData();
@@ -4360,6 +4370,7 @@ Aktualny lider: ${reportData.leader}
                 state.results = state.results.filter(r => r.d !== id);
                 
                 renderAdminDrivers();
+                calculateAllRoundPoints(); // Dodane: przelicz punkty
                 refreshVisibleView();
                 updateTeamAssignments();
                 saveData();
@@ -4414,11 +4425,3 @@ Aktualny lider: ${reportData.leader}
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
