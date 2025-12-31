@@ -963,7 +963,7 @@
                         </div>
                         
                         <!-- New: Equalization Points -->
-                        <div class="mt-4 p-3 bg-[#111] rounded-lg border-l-4 border-grey-600">
+                        <div class="mt-4 p-3 bg-[#111] rounded-lg border-l-4 border-purple-600">
                             <h4 class="font-mono text-sm font-bold text-white mb-2">🔄 Punkty Wyrównawcze (+4 PKT):</h4>
                             <ul class="font-mono text-xs text-gray-300 space-y-1">
                                 <li>• <strong>Przy 6 graczach:</strong> Jeśli w 2 pierwszych etapach miejsce poniżej 5. i w 3. etapie miejsce 3. lub wyższe</li>
@@ -1902,6 +1902,91 @@
             debouncedSaveToCloud();
         }
 
+        // --- NOWA FUNKCJA DO OBLICZANIA POZYCJI W RAJDZIE ---
+        function getRoundStandings(roundIndex) {
+            const roundResults = state.results.filter(res => res.r === roundIndex);
+            
+            if (roundResults.length === 0) {
+                return [];
+            }
+            
+            // Znajdź najgorszy normalny czas w każdym etapie dla kar DNF
+            const worstNormalTimesPerStage = {};
+            roundResults.forEach(result => {
+                if (result.time !== "DSQ" && result.time !== "DNF" && typeof result.ms === 'number') {
+                    const stageIdx = result.s;
+                    if (!worstNormalTimesPerStage[stageIdx] || result.ms > worstNormalTimesPerStage[stageIdx]) {
+                        worstNormalTimesPerStage[stageIdx] = result.ms;
+                    }
+                }
+            });
+            
+            // Grupuj wyniki przez kierowcę
+            const driverResults = {};
+            
+            roundResults.forEach(result => {
+                if (!driverResults[result.d]) {
+                    driverResults[result.d] = {
+                        times: [],
+                        totalTime: 0,
+                        hasDSQ: false,
+                        dnfStages: []
+                    };
+                }
+                
+                if (result.time === "DSQ") {
+                    driverResults[result.d].hasDSQ = true;
+                } else if (result.time === "DNF") {
+                    driverResults[result.d].dnfStages.push(result.s);
+                } else if (typeof result.ms === 'number') {
+                    driverResults[result.d].times.push({stage: result.s, time: result.ms});
+                    driverResults[result.d].totalTime += result.ms;
+                }
+            });
+            
+            // Oblicz czasy końcowe z karami
+            const driverTimes = [];
+            
+            Object.keys(driverResults).forEach(driverId => {
+                const driverResult = driverResults[driverId];
+                
+                if (driverResult.hasDSQ) {
+                    driverTimes.push({
+                        driverId: parseInt(driverId),
+                        totalMs: Infinity,
+                        isDSQ: true
+                    });
+                } else {
+                    let totalTime = driverResult.totalTime;
+                    
+                    // Dodaj kary DNF
+                    driverResult.dnfStages.forEach(stageIdx => {
+                        if (worstNormalTimesPerStage[stageIdx]) {
+                            totalTime += worstNormalTimesPerStage[stageIdx] + 20000;
+                        } else {
+                            totalTime += 300000;
+                        }
+                    });
+                    
+                    driverTimes.push({
+                        driverId: parseInt(driverId),
+                        totalMs: totalTime,
+                        isDSQ: false
+                    });
+                }
+            });
+            
+            // Sortuj według czasu
+            driverTimes.sort((a, b) => {
+                if (a.isDSQ && b.isDSQ) return 0;
+                if (a.isDSQ) return 1;
+                if (b.isDSQ) return -1;
+                return a.totalMs - b.totalMs;
+            });
+            
+            return driverTimes;
+        }
+
         // --- IMPROVED POINTS CALCULATION SYSTEM ---
         function calculateAllRoundPoints() {
             if (state.isCalculating) {
@@ -1923,11 +2008,11 @@
                     calculateRoundPoints(roundIndex);
                 }
                 
-                // Calculate equalization points
-                calculateEqualizationPoints();
-                
                 // Calculate bonus points
                 calculateBonusPoints();
+                
+                // Calculate equalization points
+                calculateEqualizationPoints();
                 
                 // Invalidate cache
                 invalidateCache();
@@ -1940,6 +2025,76 @@
                     setTimeout(calculateAllRoundPoints, 100);
                 }
             }
+        }
+
+        // POPRAWIONA FUNKCJA DO OBLICZANIA PUNKTÓW WYRÓWNAWCZYCH
+        function calculateEqualizationPoints() {
+            const totalDrivers = state.drivers.length;
+            
+            // Punkty wyrównawcze dotyczą tylko pierwszych 3 rund
+            if (state.rounds.length < 3 || totalDrivers < 6) {
+                return;
+            }
+            
+            // Oblicz pozycje dla każdej z pierwszych 3 rund
+            const round1Standings = getRoundStandings(0);
+            const round2Standings = getRoundStandings(1);
+            const round3Standings = getRoundStandings(2);
+            
+            // Jeśli brakuje wyników w którejś rundzie, nie przyznawaj punktów wyrównawczych
+            if (round1Standings.length === 0 || round2Standings.length === 0 || round3Standings.length === 0) {
+                return;
+            }
+            
+            // Mapuj pozycje kierowców w każdej rundzie
+            const round1Positions = {};
+            round1Standings.forEach((standing, index) => {
+                round1Positions[standing.driverId] = index + 1;
+            });
+            
+            const round2Positions = {};
+            round2Standings.forEach((standing, index) => {
+                round2Positions[standing.driverId] = index + 1;
+            });
+            
+            const round3Positions = {};
+            round3Standings.forEach((standing, index) => {
+                round3Positions[standing.driverId] = index + 1;
+            });
+            
+            // Dla każdego kierowcy sprawdź warunki
+            state.drivers.forEach(driver => {
+                const pos1 = round1Positions[driver.id];
+                const pos2 = round2Positions[driver.id];
+                const pos3 = round3Positions[driver.id];
+                
+                // Jeśli kierowca nie ma pozycji w którejś rundzie, pomiń
+                if (!pos1 || !pos2 || !pos3) {
+                    driver.equalizationPoints = 0;
+                    return;
+                }
+                
+                if (totalDrivers === 6) {
+                    // Dla 6 graczy: jeśli w 2 pierwszych etapach miejsce poniżej 5. (czyli 6.)
+                    // i w 3. etapie miejsce 3. lub wyższe
+                    if (pos1 > 5 && pos2 > 5 && pos3 <= 3) {
+                        driver.equalizationPoints = 4;
+                    } else {
+                        driver.equalizationPoints = 0;
+                    }
+                } else if (totalDrivers >= 8) {
+                    // Dla 8 graczy: jeśli w 2 pierwszych etapach miejsce poniżej 6. (czyli 7. lub 8.)
+                    // i w 3. etapie miejsce 4. lub wyższe
+                    if (pos1 > 6 && pos2 > 6 && pos3 <= 4) {
+                        driver.equalizationPoints = 4;
+                    } else {
+                        driver.equalizationPoints = 0;
+                    }
+                } else {
+                    // Dla innej liczby graczy nie przyznajemy punktów wyrównawczych
+                    driver.equalizationPoints = 0;
+                }
+            });
         }
 
         function calculateRoundPoints(roundIndex) {
@@ -2046,106 +2201,6 @@
                     if (driver) {
                         if (!driver.bonusPoints) driver.bonusPoints = 0;
                         driver.bonusPoints += (result.cp || 0);
-                    }
-                }
-            });
-        }
-
-        function calculateEqualizationPoints() {
-            const totalDrivers = state.drivers.length;
-            
-            if (state.rounds.length < 3 || totalDrivers < 6) {
-                return;
-            }
-            
-            // Calculate positions in first two rounds
-            const firstTwoRoundsPoints = {};
-            
-            state.drivers.forEach(driver => {
-                const points1 = driver.points[0] || 0;
-                const points2 = driver.points[1] || 0;
-                firstTwoRoundsPoints[driver.id] = points1 + points2;
-            });
-            
-            // Create array of drivers sorted by points in first two rounds
-            const sortedByFirstTwo = [...state.drivers].sort((a, b) => {
-                return firstTwoRoundsPoints[b.id] - firstTwoRoundsPoints[a.id];
-            });
-            
-            // Assign positions
-            const positionsInFirstTwo = {};
-            sortedByFirstTwo.forEach((driver, index) => {
-                positionsInFirstTwo[driver.id] = index + 1;
-            });
-            
-            // Calculate position in third round
-            const thirdRoundResults = state.results.filter(res => res.r === 2);
-            const driverTimesRound3 = {};
-            
-            thirdRoundResults.forEach(result => {
-                if (!driverTimesRound3[result.d]) {
-                    driverTimesRound3[result.d] = {
-                        totalTime: 0,
-                        hasDSQ: false,
-                        stageCount: 0
-                    };
-                }
-                
-                if (result.time === "DSQ") {
-                    driverTimesRound3[result.d].hasDSQ = true;
-                } else if (result.time !== "DNF" && typeof result.ms === 'number') {
-                    driverTimesRound3[result.d].totalTime += result.ms;
-                    driverTimesRound3[result.d].stageCount++;
-                }
-            });
-            
-            // Create array for sorting
-            const round3Times = [];
-            Object.keys(driverTimesRound3).forEach(driverId => {
-                const result = driverTimesRound3[driverId];
-                if (result.hasDSQ || result.stageCount === 0) {
-                    round3Times.push({
-                        driverId: parseInt(driverId),
-                        totalTime: Infinity,
-                        isDSQ: result.hasDSQ
-                    });
-                } else {
-                    round3Times.push({
-                        driverId: parseInt(driverId),
-                        totalTime: result.totalTime,
-                        isDSQ: false
-                    });
-                }
-            });
-            
-            // Sort by time
-            round3Times.sort((a, b) => {
-                if (a.isDSQ && b.isDSQ) return 0;
-                if (a.isDSQ) return 1;
-                if (b.isDSQ) return -1;
-                return a.totalTime - b.totalTime;
-            });
-            
-            // Assign positions in round 3
-            const positionsInRound3 = {};
-            round3Times.forEach((driverTime, index) => {
-                positionsInRound3[driverTime.driverId] = index + 1;
-            });
-            
-            // Apply equalization points
-            state.drivers.forEach(driver => {
-                const positionFirstTwo = positionsInFirstTwo[driver.id];
-                const positionRound3 = positionsInRound3[driver.id];
-                
-                if (!positionFirstTwo || !positionRound3) return;
-                
-                if (totalDrivers === 6) {
-                    if (positionFirstTwo > 5 && positionRound3 <= 3) {
-                        driver.equalizationPoints = 4;
-                    }
-                } else if (totalDrivers >= 8) {
-                    if (positionFirstTwo > 6 && positionRound3 <= 4) {
-                        driver.equalizationPoints = 4;
                     }
                 }
             });
@@ -2471,7 +2526,6 @@
             }
         }
 
-        // --- REST OF THE FUNCTIONS (mostly unchanged) ---
         function updateLeaders() {
             const driverLeader = calculateDriverLeader();
             const constructorLeader = calculateConstructorLeader();
@@ -3072,11 +3126,11 @@
                 }
                 
                 if (text === 'WYRÓW.') {
-                    th.classList.add('text-grey-400', 'font-bold');
+                    th.classList.add('text-purple-400', 'font-bold');
                 }
                 
                 if (text === 'BONUS') {
-                    th.classList.add('text-grey-400');
+                    th.classList.add('text-gray-400');
                 }
                 
                 if (index >= 3 && index < headers.length - 3) {
@@ -3128,7 +3182,7 @@
                 
                 td = document.createElement('td');
                 const hasEqualization = driver.equalization > 0;
-                td.className = `py-3 md:py-4 px-2 md:px-4 text-right font-mono ${hasEqualization ? 'text-grey-400 font-bold' : (isLeader ? 'text-gray-800' : 'text-gray-500')}`;
+                td.className = `py-3 md:py-4 px-2 md:px-4 text-right font-mono ${hasEqualization ? 'text-purple-400 font-bold' : (isLeader ? 'text-gray-800' : 'text-gray-500')}`;
                 td.textContent = hasEqualization ? `+${driver.equalization}` : '-';
                 tr.appendChild(td);
                 
@@ -4525,11 +4579,3 @@ Aktualny lider: ${reportData.leader}
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
